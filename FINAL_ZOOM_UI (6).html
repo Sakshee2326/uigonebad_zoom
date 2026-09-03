@@ -1,0 +1,4718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>UI GONE BAD — Zoom Rage</title>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Mono:wght@400;700&display=swap');
+
+:root{
+  --lime:#b7ff00;
+  --pink:#ff3bd4;
+  --cyan:#00f6ff;
+  --red:#ff3154;
+  --bg:#09050e;
+  --panel:#120b1c;
+  --line:#403052;
+}
+
+*{box-sizing:border-box}
+
+html,body{
+  margin:0;
+  min-height:100%;
+  background:var(--bg);
+  color:#eee;
+  font-family:"Space Mono",monospace;
+  overflow-x:hidden;
+}
+
+body:before{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:999;
+  background:repeating-linear-gradient(
+    0deg,
+    rgba(255,255,255,.025) 0 1px,
+    transparent 1px 4px
+  );
+  mix-blend-mode:screen;
+}
+
+button,input{
+  font:inherit;
+}
+
+button{
+  cursor:pointer;
+}
+
+.hidden{
+  display:none!important;
+}
+
+.screen{
+  min-height:100vh;
+}
+
+.glitch{
+  font-family:"Press Start 2P",cursive;
+  text-shadow:3px 0 var(--pink),-3px 0 var(--cyan);
+}
+
+/* =========================================================
+   PAGE 1 — HOME
+   ========================================================= */
+
+.home{
+  display:grid;
+  place-items:center;
+  padding:30px;
+  background:
+    radial-gradient(circle at 15% 20%,#25133d,transparent 35%),
+    radial-gradient(circle at 85% 70%,#182b2e,transparent 35%),
+    var(--bg);
+}
+
+.home-box{
+  width:min(900px,94vw);
+  border:5px solid var(--lime);
+  padding:34px;
+  box-shadow:14px 14px 0 var(--pink),-8px -8px 0 var(--cyan);
+  background:#0c0712;
+  transform:rotate(-.6deg);
+}
+
+.warning{
+  border:2px dashed var(--red);
+  padding:12px;
+  margin:20px 0;
+  color:#ff7890;
+  background:#210914;
+}
+
+.cards{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:12px;
+}
+
+.card{
+  border:2px solid var(--line);
+  padding:18px;
+  background:#100a18;
+  min-height:110px;
+}
+
+.card b{
+  color:var(--lime);
+}
+
+.big-btn,
+.danger-btn,
+.ghost-btn,
+.top-btn,
+.control,
+.menu button,
+.side button,
+.join-btn{
+  border:2px solid var(--lime);
+  background:#0b1010;
+  color:var(--lime);
+  padding:12px 16px;
+  font-weight:bold;
+}
+
+.big-btn{
+  width:100%;
+  margin-top:22px;
+  font-family:"Press Start 2P";
+  font-size:13px;
+}
+
+.big-btn:hover{
+  background:var(--lime);
+  color:#080808;
+}
+
+/* =========================================================
+   PAGE 1 BLACKOUT
+   ========================================================= */
+
+#blackout{
+  position:fixed;
+  inset:0;
+  background:#000;
+  z-index:1000;
+  display:none;
+  place-items:center;
+  text-align:center;
+}
+
+#blackout.active{
+  display:grid;
+}
+
+.blackout-message{
+  color:var(--lime);
+  font-family:"Press Start 2P";
+  font-size:clamp(16px,3vw,30px);
+  line-height:1.8;
+  text-shadow:4px 0 var(--pink),-4px 0 var(--cyan);
+  animation:blackoutGlitch .12s infinite;
+}
+
+@keyframes blackoutGlitch{
+  0%,100%{transform:translate(0)}
+  25%{transform:translate(5px,-3px)}
+  50%{transform:translate(-5px,3px)}
+  75%{transform:translate(3px,2px)}
+}
+
+/* =========================================================
+   ANONYMOUS MESSAGE SYSTEM
+   ========================================================= */
+
+#anonymousLayer{
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:850;
+  overflow:hidden;
+}
+
+.anonymous-msg{
+  position:absolute;
+  padding:8px 11px;
+  border:2px solid var(--pink);
+  background:#050208;
+  color:var(--lime);
+  font-family:"Press Start 2P";
+  font-size:9px;
+  box-shadow:4px 4px 0 var(--cyan);
+  animation:anonymousPop .8s steps(2) forwards;
+  max-width:280px;
+}
+
+@keyframes anonymousPop{
+  0%{
+    opacity:0;
+    transform:scale(.4) rotate(-12deg);
+  }
+  15%{
+    opacity:1;
+  }
+  80%{
+    opacity:1;
+  }
+  100%{
+    opacity:0;
+    transform:scale(1.05) rotate(4deg);
+  }
+}
+
+/* =========================================================
+   PAGE 2 — CREDENTIALS
+   ========================================================= */
+
+.auth-wrap{
+  display:grid;
+  place-items:center;
+  min-height:100vh;
+  padding:25px;
+  background:#08050d;
+}
+
+.auth{
+  width:min(600px,94vw);
+  border:4px solid var(--cyan);
+  padding:28px;
+  background:#0e0915;
+  box-shadow:12px 12px 0 var(--pink);
+  position:relative;
+}
+
+/*
+  180 degrees every 2 seconds:
+  0 -> 180 in first second,
+  then 180 -> 0 in second second.
+  Therefore the panel flips 180 degrees every 2 seconds.
+*/
+.auth.login-flip{
+  animation:loginFlip 12s linear infinite;
+  transform-style:preserve-3d;
+}
+
+@keyframes loginFlip{
+  0%,16.6667%{transform:rotate(0deg);}
+  25%{transform:rotate(180deg);}
+  25%,41.6667%{transform:rotate(180deg);}
+  50%{transform:rotate(0deg);}
+  50%,66.6667%{transform:rotate(0deg);}
+  75%{transform:rotate(-180deg);}
+  75%,91.6667%{transform:rotate(-180deg);}
+  100%{transform:rotate(0deg);}
+}
+
+/*
+  LOGIN stays visually upright while its parent rotates.
+*/
+.auth.login-flip #loginBtn{
+  animation:loginCounterFlip 12s linear infinite;
+  transform-origin:center center;
+}
+
+@keyframes loginCounterFlip{
+  0%,16.6667%{transform:rotate(0deg);}
+  25%{transform:rotate(-180deg);}
+  25%,41.6667%{transform:rotate(-180deg);}
+  50%{transform:rotate(0deg);}
+  50%,66.6667%{transform:rotate(0deg);}
+  75%{transform:rotate(180deg);}
+  75%,91.6667%{transform:rotate(180deg);}
+  100%{transform:rotate(0deg);}
+}
+
+.auth h1{
+  font-size:22px;
+}
+
+.form-row{
+  margin:14px 0;
+}
+
+.form-row label{
+  display:block;
+  color:var(--cyan);
+  margin-bottom:7px;
+  font-size:12px;
+}
+
+.form-row input{
+  width:100%;
+  padding:13px;
+  background:#050408;
+  border:2px solid var(--line);
+  color:#fff;
+  outline:none;
+}
+
+.form-row input:focus{
+  border-color:var(--lime);
+}
+
+.auth-actions{
+  position:relative;
+  height:70px;
+  margin-top:15px;
+}
+
+#loginBtn{
+  position:absolute!important;
+  left:0!important;
+  top:10px!important;
+  width:115px!important;
+  min-width:115px!important;
+  height:42px!important;
+  margin:0!important;
+  transform-origin:center;
+}
+
+.rage-text{
+  min-height:32px;
+  color:var(--pink);
+  font-weight:bold;
+}
+
+.attempt{
+  color:var(--lime);
+  font-size:11px;
+}
+
+
+.virtual-keyboard{
+  margin-top:10px;
+  border:2px solid var(--pink);
+  padding:10px;
+  background:#08050c;
+  box-shadow:5px 5px 0 var(--cyan);
+}
+
+.vk-title{
+  color:var(--pink);
+  font-size:9px;
+  margin-bottom:9px;
+  line-height:1.5;
+}
+
+.vk-keys{
+  display:grid;
+  grid-template-columns:repeat(10,1fr);
+  gap:5px;
+}
+
+.vk-key{
+  min-height:34px;
+  padding:6px 3px;
+  border:2px solid var(--line);
+  background:#0d1010;
+  color:var(--lime);
+  font-family:"Space Mono",monospace;
+  font-weight:bold;
+  font-size:11px;
+  cursor:pointer;
+  user-select:none;
+}
+
+.vk-key:hover{
+  background:var(--lime);
+  color:#080808;
+}
+
+.vk-key:active{
+  transform:translate(2px,2px);
+  box-shadow:0 0 0 var(--pink);
+}
+
+.vk-key.wide{
+  grid-column:span 2;
+}
+
+@media(max-width:600px){
+  .vk-keys{
+    grid-template-columns:repeat(8,1fr);
+  }
+
+  .vk-key{
+    min-height:32px;
+    font-size:10px;
+  }
+}
+
+.example-box{
+  margin-top:14px;
+  border:2px dashed var(--cyan);
+  padding:12px;
+  color:#aaa;
+  font-size:10px;
+  line-height:1.8;
+  background:#08060c;
+}
+
+.example-box strong{
+  color:var(--lime);
+}
+
+.captcha{
+  font-size:10px;
+  color:#777;
+  margin-top:10px;
+}
+
+/* =========================================================
+   CENTERED RAGEBAIT POPUPS
+   ========================================================= */
+#rageCenter{position:fixed;inset:0;display:none;place-items:center;z-index:980;pointer-events:none;background:rgba(0,0,0,.72);text-align:center;}
+#rageCenter.active{display:grid;}
+.rage-center-message{max-width:min(900px,90vw);padding:24px 30px;border:4px solid var(--pink);background:#050208;color:var(--lime);font-family:"Press Start 2P";font-size:clamp(14px,3vw,30px);line-height:1.7;text-shadow:5px 0 var(--cyan),-5px 0 var(--pink);box-shadow:12px 12px 0 var(--cyan),-8px -8px 0 var(--pink);animation:centerRage .11s steps(2) infinite;}
+@keyframes centerRage{0%,100%{transform:translate(0) skew(0);}25%{transform:translate(7px,-3px) skew(-2deg);}50%{transform:translate(-6px,4px) skew(2deg);}75%{transform:translate(3px,2px) skew(-1deg);}}
+
+/* =========================================================
+   PAGE 3 — PRE JOIN
+   ========================================================= */
+
+.join-wrap{
+  min-height:100vh;
+  display:grid;
+  place-items:center;
+  padding:25px;
+  background:#08050d;
+}
+
+.join{
+  width:min(820px,94vw);
+  background:#0d0914;
+  border:4px solid var(--lime);
+  padding:24px;
+  box-shadow:10px 10px 0 var(--cyan);
+}
+
+.preview{
+  height:330px;
+  background:#030305;
+  border:3px solid #382841;
+  display:grid;
+  place-items:center;
+  position:relative;
+  overflow:hidden;
+}
+
+.preview video{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+.preview.off:after{
+  content:"CAMERA OFF";
+  font-family:"Press Start 2P";
+  color:#555;
+}
+
+.join-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:15px;
+  margin-top:15px;
+}
+
+.join-extra{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:10px;
+  margin-top:12px;
+}
+
+.join-extra button{
+  width:100%;
+}
+
+.join-warning{
+  border:2px dashed var(--pink);
+  padding:12px;
+  margin-top:15px;
+  color:var(--pink);
+  font-size:11px;
+  min-height:40px;
+}
+
+/* Full-screen anonymous prejoin attack */
+
+#unsafeOverlay{
+  position:fixed;
+  inset:0;
+  z-index:950;
+  display:none;
+  background:#000;
+  place-items:center;
+  text-align:center;
+}
+
+#unsafeOverlay.active{
+  display:grid;
+}
+
+.unsafe-message{
+  font-family:"Press Start 2P";
+  color:var(--red);
+  font-size:clamp(18px,4vw,45px);
+  line-height:1.7;
+  text-shadow:
+    5px 0 var(--pink),
+    -5px 0 var(--cyan);
+  animation:unsafeShake .1s infinite;
+}
+
+.unsafe-message small{
+  display:block;
+  margin-top:20px;
+  font-size:10px;
+  color:var(--lime);
+}
+
+@keyframes unsafeShake{
+  0%,100%{transform:translate(0)}
+  25%{transform:translate(8px,-4px)}
+  50%{transform:translate(-7px,4px)}
+  75%{transform:translate(4px,3px)}
+}
+
+/* =========================================================
+   PAGE 4 — ZOOM MEETING
+   ========================================================= */
+
+.zoom-app{
+  height:100vh;
+  background:#070509;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
+
+.topbar{
+  height:58px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 15px;
+  border-bottom:2px solid #30213c;
+  background:#0d0812;
+  flex:none;
+}
+
+.brand{
+  font-family:"Press Start 2P";
+  color:var(--lime);
+  font-size:12px;
+}
+
+.top-right{
+  display:flex;
+  gap:8px;
+}
+
+.top-btn{
+  padding:8px 10px;
+  font-size:11px;
+}
+
+.meeting{
+  display:flex;
+  flex:1;
+  min-height:0;
+}
+
+.stage{
+  flex:1;
+  padding:12px;
+  min-width:0;
+  overflow:auto;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+  height:100%;
+  align-content:center;
+}
+
+.tile{
+  min-height:180px;
+  background:#110c17;
+  border:2px solid #3b2a49;
+  position:relative;
+  overflow:hidden;
+  display:grid;
+  place-items:center;
+}
+
+.tile.speaking{
+  border-color:var(--lime);
+  box-shadow:0 0 15px #b7ff0044;
+}
+
+.tile video{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+.avatar{
+  width:72px;
+  height:72px;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  background:#24152e;
+  border:3px solid var(--cyan);
+  font-size:28px;
+  color:var(--cyan);
+}
+
+.tile-name{
+  position:absolute;
+  left:8px;
+  bottom:7px;
+  background:#050308cc;
+  padding:5px 7px;
+  font-size:11px;
+}
+
+.mic-state{
+  position:absolute;
+  right:7px;
+  top:7px;
+  font-size:12px;
+}
+
+.side{
+  width:330px;
+  border-left:2px solid #33243d;
+  background:#0e0914;
+  display:flex;
+  flex-direction:column;
+  min-width:0;
+}
+
+.side-head{
+  display:flex;
+  justify-content:space-between;
+  padding:12px;
+  border-bottom:2px solid #33243d;
+}
+
+.side-body{
+  padding:12px;
+  overflow:auto;
+  flex:1;
+}
+
+.person{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:10px;
+  border:1px solid #30223a;
+  margin-bottom:7px;
+}
+
+.person .mini{
+  width:34px;
+  height:34px;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  background:#24152e;
+}
+
+.person-main{
+  flex:1;
+  font-size:12px;
+}
+
+.person-actions{
+  display:flex;
+  gap:4px;
+}
+
+.person-actions button{
+  padding:5px 7px;
+  font-size:10px;
+}
+
+.chat-msg{
+  padding:9px;
+  border-bottom:1px solid #281b31;
+  font-size:12px;
+}
+
+.chat-form{
+  display:flex;
+  gap:5px;
+  margin-top:10px;
+}
+
+.chat-form input{
+  flex:1;
+  background:#050408;
+  color:#fff;
+  border:2px solid #3b2a49;
+  padding:9px;
+}
+
+.controls{
+  height:82px;
+  background:#0d0812;
+  border-top:2px solid #30213c;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  padding:8px;
+  flex:none;
+}
+
+.control{
+  min-width:78px;
+  font-size:10px;
+  position:relative;
+}
+
+.control.on{
+  border-color:var(--lime);
+  color:var(--lime);
+}
+
+.control.off{
+  border-color:var(--red);
+  color:#ff7186;
+}
+
+.leave{
+  border-color:var(--red);
+  color:#ff7186;
+}
+
+.menu{
+  position:absolute;
+  bottom:75px;
+  right:80px;
+  background:#0e0914;
+  border:2px solid var(--lime);
+  padding:8px;
+  display:grid;
+  gap:6px;
+  z-index:50;
+}
+
+.menu button{
+  text-align:left;
+  border-color:#49365a;
+  color:#fff;
+}
+
+.overlay{
+  position:fixed;
+  inset:0;
+  background:#000b;
+  display:grid;
+  place-items:center;
+  z-index:100;
+}
+
+.modal{
+  width:min(560px,92vw);
+  max-height:85vh;
+  overflow:auto;
+  background:#0e0914;
+  border:3px solid var(--lime);
+  padding:20px;
+  box-shadow:10px 10px 0 var(--pink);
+}
+
+.modal h2{
+  margin-top:0;
+  color:var(--lime);
+}
+
+.modal-row{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  padding:11px 0;
+  border-bottom:1px solid #30223a;
+}
+
+.toast{
+  position:fixed;
+  right:18px;
+  top:75px;
+  background:#0c0711;
+  border:2px solid var(--pink);
+  color:#fff;
+  padding:12px;
+  z-index:900;
+  max-width:360px;
+  box-shadow:5px 5px 0 var(--cyan);
+  animation:toast .2s;
+}
+
+.toast.bad{
+  border-color:var(--red);
+}
+
+@keyframes toast{
+  from{
+    transform:translateX(50px) rotate(3deg);
+    opacity:0;
+  }
+  to{
+    transform:none;
+    opacity:1;
+  }
+}
+
+.rage{
+  animation:rage .18s infinite;
+}
+
+@keyframes rage{
+  0%,100%{
+    transform:translate(0) rotate(0);
+  }
+  25%{
+    transform:translate(2px,-1px) rotate(.2deg);
+  }
+  50%{
+    transform:translate(-2px,2px) rotate(-.2deg);
+  }
+  75%{
+    transform:translate(1px,1px);
+  }
+}
+
+.screen-share{
+  height:100%;
+  min-height:450px;
+  background:#020204;
+  border:3px solid var(--cyan);
+  display:grid;
+  place-items:center;
+  color:var(--cyan);
+  font-family:"Press Start 2P";
+  text-align:center;
+}
+
+.success{
+  color:var(--lime);
+}
+
+@media(max-width:850px){
+  .cards,
+  .join-grid{
+    grid-template-columns:1fr;
+  }
+
+  .grid{
+    grid-template-columns:repeat(2,1fr);
+  }
+
+  .side{
+    width:290px;
+  }
+
+  .controls{
+    overflow:auto;
+    justify-content:flex-start;
+  }
+
+  .control{
+    min-width:70px;
+  }
+}
+
+@media(max-width:600px){
+  .side{
+    position:absolute;
+    right:0;
+    top:58px;
+    bottom:82px;
+    z-index:40;
+  }
+
+  .grid{
+    grid-template-columns:1fr;
+  }
+
+  .top-btn{
+    display:none;
+  }
+}
+</style>
+
+<style id="ui-gone-bad-final-rage">
+/* FINAL RAGE LAYER — preserves the existing base */
+#rageCenterFinal{position:fixed;inset:0;display:none;place-items:center;z-index:5000;pointer-events:none;text-align:center;background:rgba(0,0,0,.12)}
+#rageCenterFinal.active{display:grid}
+#rageCenterFinal .rage-card{max-width:min(760px,88vw);padding:22px 28px;border:4px solid var(--pink);background:#09050ef2;color:var(--lime);font-family:"Press Start 2P",monospace;font-size:clamp(14px,2.2vw,28px);line-height:1.7;box-shadow:9px 9px 0 var(--cyan),-6px -6px 0 var(--red);animation:finalRage .12s infinite}
+@keyframes finalRage{0%,100%{transform:translate(0) rotate(0)}25%{transform:translate(4px,-2px) rotate(.4deg)}50%{transform:translate(-4px,3px) rotate(-.4deg)}75%{transform:translate(2px,2px) rotate(.2deg)}}
+.final-runaway{position:fixed!important;z-index:4900!important;transition:left .16s,top .16s,transform .16s!important}
+#meetingChaosMeter{position:fixed;right:14px;bottom:92px;z-index:1100;font:10px "Press Start 2P",monospace;color:var(--lime);background:#09050ee8;border:2px solid var(--cyan);padding:8px 10px;box-shadow:4px 4px 0 var(--pink);pointer-events:none}
+.page1-rage{animation:page1Rage .18s infinite!important}
+@keyframes page1Rage{0%,100%{transform:translate(0) rotate(0)}30%{transform:translate(5px,-3px) rotate(1deg)}60%{transform:translate(-5px,3px) rotate(-1deg)}}
+</style>
+</head>
+
+<body>
+
+<!-- =========================================================
+     PAGE 1 — HOME
+     ========================================================= -->
+
+<section id="home" class="screen home">
+
+  <div class="home-box">
+
+    <div class="glitch" style="font-size:clamp(24px,5vw,48px)">
+      UI GONE BAD
+    </div>
+
+    <h2>ZOOM RAGE // MEETING SYSTEM</h2>
+
+    <div class="warning">
+      ⚠ WARNING: THIS INTERFACE HAS DEVELOPED ATTITUDE.
+    </div>
+
+    <div class="cards">
+
+      <div class="card">
+        <b>CAMERA</b>
+        <br><br>
+        It works. Probably.
+      </div>
+
+      <div class="card">
+        <b>PARTICIPANTS</b>
+        <br><br>
+        Maybe you have friends.
+      </div>
+
+      <div class="card">
+        <b>CONTROLS</b>
+        <br><br>
+        Everything is technically functional.
+      </div>
+
+    </div>
+
+    <button id="enterBtn" class="big-btn">
+      ENTER MEETING
+    </button>
+
+  </div>
+
+</section>
+
+
+<!-- =========================================================
+     PAGE 2 — CREDENTIALS
+     ========================================================= -->
+
+<section id="auth" class="screen auth-wrap hidden">
+
+  <div id="authBox" class="auth login-flip">
+
+    <div class="glitch">
+      WHO ARE YOU?
+    </div>
+
+    <h1 id="authTitle">
+      IDENTITY? THAT'S SUSPICIOUS.
+    </h1>
+
+    <div id="rageText" class="rage-text">
+      THE SYSTEM WOULD LIKE TO KNOW WHO IS CAUSING THIS PROBLEM.
+    </div>
+
+    <div class="form-row">
+      <label id="emailLabel">
+        USERNAME
+      </label>
+
+      <input
+        id="email"
+        autocomplete="username"
+        placeholder="host"
+      >
+    </div>
+
+    <div class="form-row">
+      <label id="passLabel">
+        PASSWORD
+      </label>
+
+      <input
+        id="password"
+        type="password"
+        autocomplete="off"
+        placeholder="USE THE KEYBOARD BELOW"
+        readonly
+        inputmode="none"
+      >
+
+      <div id="virtualKeyboard" class="virtual-keyboard hidden" aria-label="On-screen password keyboard">
+        <div class="vk-title">PASSWORD KEYBOARD // PHYSICAL KEYS DISABLED</div>
+        <div class="vk-keys" id="vkKeys"></div>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <label>
+        MEETING ID
+      </label>
+
+      <input
+        id="meetingId"
+        placeholder="847 291 6654"
+        maxlength="12"
+      >
+    </div>
+
+    <div class="form-row">
+      <label>
+        PASSCODE
+      </label>
+
+      <input
+        id="meetingPass"
+        placeholder="BADUI2026"
+      >
+    </div>
+
+    <div class="attempt">
+      LOGIN ATTEMPTS:
+      <span id="attemptCount">0</span>/5
+    </div>
+
+    <div class="auth-actions">
+
+      <button id="loginBtn" class="big-btn">
+        LOGIN
+      </button>
+
+    </div>
+
+    <div class="example-box">
+
+      <strong>HOW TO ENTER</strong>
+      <br>
+
+      Username:
+      <strong>ANY USERNAME</strong>
+
+      <br>
+
+      Password:
+      <strong>ANY PASSWORD</strong>
+
+      <br>
+
+      Meeting ID:
+      <strong>847 291 6654</strong>
+
+      <br>
+
+      Passcode:
+      <strong>BADUI2026</strong>
+
+    </div>
+
+    <div class="captcha">
+      THESE ARE DEMO CREDENTIALS — NOT REAL ZOOM ACCOUNTS.
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- =========================================================
+     PAGE 3 — PRE JOIN
+     ========================================================= -->
+
+<section id="join" class="screen join-wrap hidden">
+
+  <div class="join">
+
+    <div class="glitch">
+      PRE-JOIN
+    </div>
+
+    <p>
+      MEETING:
+      <b>847 291 6654</b>
+      //
+      PASSCODE ACCEPTED
+    </p>
+
+    <div id="preview" class="preview off">
+
+      <video
+        id="localPreview"
+        autoplay
+        muted
+        playsinline>
+      </video>
+
+    </div>
+
+    <div class="join-grid">
+
+      <button id="joinMic" class="ghost-btn">
+        🎤 MICROPHONE: ON
+      </button>
+
+      <button id="joinCam" class="ghost-btn">
+        📷 CAMERA: OFF
+      </button>
+
+    </div>
+
+    <div class="join-extra">
+
+      <button id="speakerTest" class="ghost-btn">
+        🔊 TEST SPEAKER
+      </button>
+
+    </div>
+
+    <div class="form-row">
+
+      <label>
+        DISPLAY NAME
+      </label>
+
+      <input
+        id="displayName"
+        value="Sakshee"
+      >
+
+    </div>
+
+    <button id="joinMeeting" class="big-btn">
+      JOIN MEETING
+    </button>
+
+    <div id="cameraRage" class="join-warning">
+      CAMERA AND AUDIO CHECK INITIALIZING...
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- =========================================================
+     PAGE 4 — ZOOM MEETING
+     ========================================================= -->
+
+<section id="app" class="zoom-app hidden">
+
+  <header class="topbar">
+
+    <div class="brand">
+      ZOOM // GONE BAD
+    </div>
+
+    <div id="meetingStatus">
+      UI GONE BAD MEETING •
+      <span class="success">CONNECTED</span>
+    </div>
+
+    <div class="top-right">
+
+      <button id="securityBtn" class="top-btn">
+        🔒 SECURITY
+      </button>
+
+      <button id="viewBtn" class="top-btn">
+        VIEW: GALLERY
+      </button>
+
+    </div>
+
+  </header>
+
+  <main class="meeting">
+
+    <section class="stage">
+
+      <div id="grid" class="grid"></div>
+
+    </section>
+
+    <aside id="side" class="side hidden">
+
+      <div class="side-head">
+
+        <b id="sideTitle">
+          PARTICIPANTS
+        </b>
+
+        <button id="closeSide" class="ghost-btn">
+          ×
+        </button>
+
+      </div>
+
+      <div id="sideBody" class="side-body"></div>
+
+    </aside>
+
+  </main>
+
+  <footer class="controls">
+
+    <button id="micBtn" class="control on">
+      🎤 MUTE
+    </button>
+
+    <button id="camBtn" class="control off">
+      📷 START VIDEO
+    </button>
+
+    <button id="participantsBtn" class="control">
+      👥 PARTICIPANTS
+    </button>
+
+    <button id="chatBtn" class="control">
+      💬 CHAT
+    </button>
+
+    <button id="shareBtn" class="control">
+      🖥 SHARE
+    </button>
+
+    <button id="reactBtn" class="control">
+      😊 REACT
+    </button>
+
+    <button id="moreBtn" class="control">
+      ••• MORE
+    </button>
+
+    <button id="leaveBtn" class="control leave">
+      LEAVE
+    </button>
+
+  </footer>
+
+  <div id="moreMenu" class="menu hidden">
+
+    <button id="addParticipantsBtn">
+      👥 ADD PARTICIPANTS
+    </button>
+
+    <button id="recordBtn">
+      🔴 START RECORDING
+    </button>
+
+    <button id="captionsBtn">
+      CC CAPTIONS
+    </button>
+
+    <button id="settingsBtn">
+      ⚙ SETTINGS
+    </button>
+
+    <button id="infoBtn">
+      ⓘ MEETING INFO
+    </button>
+
+    <button id="chaosBtn">
+      ☠ MAXIMUM CHAOS
+    </button>
+
+  </div>
+
+</section>
+
+
+<!-- =========================================================
+     OVERLAYS
+     ========================================================= -->
+
+<div id="blackout">
+
+  <div class="blackout-message" id="blackoutMessage">
+    WHAT HAVE YOU DONE?!
+    <br>
+    <small>YOU CLICKED THE WRONG THING.</small>
+  </div>
+
+</div>
+
+
+<div id="unsafeOverlay">
+
+  <div class="unsafe-message">
+
+    YOU'RE NOT SAFE HERE.
+
+    <small>
+      CONNECTION INTERRUPTED
+    </small>
+
+  </div>
+
+</div>
+
+<div id="rageCenter">
+  <div id="rageCenterMessage" class="rage-center-message"></div>
+</div>
+
+<div id="anonymousLayer"></div>
+
+
+<div id="modalOverlay" class="overlay hidden">
+
+  <div id="modal" class="modal"></div>
+
+</div>
+
+
+<div id="toastRoot"></div>
+
+
+<script>
+
+/* =========================================================
+   BASIC HELPERS
+   ========================================================= */
+
+const $ = id => document.getElementById(id);
+
+
+/* =========================================================
+   GLOBAL STATE
+   ========================================================= */
+
+const state = {
+
+  role:"participant",
+
+  mic:true,
+
+  cam:false,
+
+  sharing:false,
+
+  recording:false,
+
+  view:"gallery",
+
+  chaos:true,
+
+  locked:false,
+
+  waiting:true,
+
+  addAttempts:0,
+
+  cameraAttempts:0,
+
+  speakerAttempts:0,
+
+  participants:[
+
+    {
+      name:"Alex",
+      role:"Participant",
+      mic:true,
+      cam:false
+    },
+
+    {
+      name:"Maya",
+      role:"Participant",
+      mic:false,
+      cam:true
+    },
+
+    {
+      name:"Jordan",
+      role:"Participant",
+      mic:true,
+      cam:true
+    },
+
+    {
+      name:"Chris",
+      role:"Participant",
+      mic:false,
+      cam:false
+    },
+
+    {
+      name:"Taylor",
+      role:"Participant",
+      mic:true,
+      cam:false
+    }
+
+  ],
+
+  chat:[
+    {
+      name:"Maya",
+      text:"is everyone here? 😭"
+    }
+  ],
+
+  localStream:null,
+
+  screenStream:null
+
+};
+
+
+/* =========================================================
+   TOAST
+   ========================================================= */
+
+function toast(msg,bad=false){
+
+  const t=document.createElement("div");
+
+  t.className="toast"+(bad?" bad":"");
+
+  t.textContent=msg;
+
+  $("toastRoot").appendChild(t);
+
+  setTimeout(()=>{
+    t.remove();
+  },2800);
+
+}
+
+
+/* =========================================================
+   MODAL
+   ========================================================= */
+
+function modal(html){
+
+  $("modal").innerHTML=html;
+
+  $("modalOverlay").classList.remove("hidden");
+
+}
+
+function closeModal(){
+
+  $("modalOverlay").classList.add("hidden");
+
+}
+
+$("modalOverlay").onclick=e=>{
+
+  if(e.target===$("modalOverlay")){
+    closeModal();
+  }
+
+};
+
+
+/* =========================================================
+   PAGE NAVIGATION
+   ========================================================= */
+
+function show(id){
+
+  [
+    "home",
+    "auth",
+    "join",
+    "app"
+  ].forEach(x=>{
+
+    $(x).classList.toggle(
+      "hidden",
+      x!==id
+    );
+
+  });
+
+}
+
+
+/* =========================================================
+   PAGE 1 → BLACKOUT → CREDENTIALS
+   ========================================================= */
+
+let transitionStarted=false;
+
+$("enterBtn").onclick=()=>{
+
+  if(transitionStarted)return;
+
+  transitionStarted=true;
+
+  const blackout=$("blackout");
+
+  blackout.classList.add("active");
+
+  $("blackoutMessage").innerHTML=
+    "WHAT HAVE YOU DONE?!<br><small>YOU REALLY CLICKED THAT?</small>";
+
+  /*
+    Blackout lasts exactly 2 seconds.
+  */
+
+  setTimeout(()=>{
+
+    blackout.classList.remove("active");
+
+    $("blackoutMessage").innerHTML=
+      "YOU REALLY CLICKED THAT?!";
+
+  },2000);
+
+  /*
+    Credentials appear 5 seconds after click.
+  */
+
+  setTimeout(()=>{
+
+    show("auth");
+
+    transitionStarted=false;
+
+  },5000);
+
+};
+
+
+/* =========================================================
+   ANONYMOUS MESSAGE ENGINE
+   ========================================================= */
+
+const anonymousMessages=[
+
+  "ANONYMOUS: WHY ARE YOU HERE?",
+
+  "ANONYMOUS: YOU SHOULDN'T HAVE CLICKED THAT.",
+
+  "ANONYMOUS: WE SAW THAT.",
+
+  "ANONYMOUS: NICE TRY.",
+
+  "ANONYMOUS: SYSTEM DISAGREES.",
+
+  "ANONYMOUS: USER TOO CURIOUS.",
+
+  "ANONYMOUS: BAD UI DETECTED.",
+
+  "ANONYMOUS: STOP CLICKING.",
+
+  "ANONYMOUS: ARE YOU SURE?",
+
+  "ANONYMOUS: SOMETHING IS WRONG.",
+
+  "ANONYMOUS: THIS BUTTON WAS A MISTAKE.",
+
+  "ANONYMOUS: CONNECTION FEELS WEIRD.",
+
+  "ANONYMOUS: WE ARE STILL WATCHING THE UI.",
+
+  "ANONYMOUS: TRY AGAIN. WHY NOT?"
+
+];
+
+
+function spawnAnonymous(){
+
+  const activePage=[
+
+    "home",
+    "auth",
+    "join",
+    "app"
+
+  ].find(id=>!$(id).classList.contains("hidden"));
+
+  if(!activePage)return;
+
+  const msg=document.createElement("div");
+
+  msg.className="anonymous-msg";
+
+  msg.textContent=
+    anonymousMessages[
+      Math.floor(
+        Math.random()*anonymousMessages.length
+      )
+    ];
+
+  msg.style.left=
+    Math.random()*82+5+"vw";
+
+  msg.style.top=
+    Math.random()*82+5+"vh";
+
+  msg.style.transform=
+    `rotate(${Math.random()*16-8}deg)`;
+
+  $("anonymousLayer").appendChild(msg);
+
+  setTimeout(()=>{
+    msg.remove();
+  },800);
+
+}
+
+
+/*
+  Anonymous messages continuously appear.
+*/
+
+setInterval(()=>{
+
+  spawnAnonymous();
+
+},1100);
+
+
+/* =========================================================
+   PASSWORD — ON-SCREEN KEYBOARD
+   ========================================================= */
+
+const vkLayout=[
+  ["Q","7","A","M","2","Z","P","9","E","4"],
+  ["K","X","1","R","B","8","T","N","5","W"],
+  ["3","C","Y","0","D","6","F","I","L"],
+  ["O","V","-","H","U",".","G","J","S","_"]
+];
+
+function buildVirtualKeyboard(){
+
+  const keyboard=$("vkKeys");
+
+  if(!keyboard)return;
+
+  keyboard.innerHTML="";
+
+  vkLayout.forEach(row=>{
+
+    row.forEach(key=>{
+
+      const btn=document.createElement("button");
+
+      btn.type="button";
+      btn.className="vk-key";
+      btn.textContent=key;
+
+      btn.onclick=()=>{
+
+        $("password").value += key.toLowerCase();
+        $("password").focus();
+
+      };
+
+      keyboard.appendChild(btn);
+
+    });
+
+  });
+
+  const back=document.createElement("button");
+  back.type="button";
+  back.className="vk-key wide";
+  back.textContent="⌫ BACKSPACE";
+  back.onclick=()=>{
+    $("password").value=$("password").value.slice(0,-1);
+    $("password").focus();
+  };
+  keyboard.appendChild(back);
+
+  const clear=document.createElement("button");
+  clear.type="button";
+  clear.className="vk-key wide";
+  clear.textContent="CLEAR";
+  clear.onclick=()=>{
+    $("password").value="";
+    $("password").focus();
+  };
+  keyboard.appendChild(clear);
+
+}
+
+buildVirtualKeyboard();
+
+const usernameTitles=["USERNAME","WHO ARE YOU?","USER ID","IDENTITY?","ENTER HUMAN","USERNAME??"];
+const passwordTitles=["PASSWORD","SECRET","ACCESS KEY","PASSWORD??","PROVE IT","HIDDEN WORD"];
+let labelTick=0;
+setInterval(()=>{
+  if($("auth").classList.contains("hidden"))return;
+  labelTick++;
+  $("emailLabel").textContent=usernameTitles[labelTick%usernameTitles.length];
+  $("passLabel").textContent=passwordTitles[labelTick%passwordTitles.length];
+},2000);
+
+$("password").onclick=()=>{
+  $("virtualKeyboard").classList.remove("hidden");
+};
+
+$("password").onfocus=()=>{
+  $("virtualKeyboard").classList.remove("hidden");
+};
+
+/* =========================================================
+   PAGE 2 — LOGIN RAGEBAIT
+   ========================================================= */
+
+const loginMessages=[
+
+  "WHY ARE YOU TRYING TO GET IN?",
+
+  "USERNAME RECEIVED. TRUST LEVEL: LOW.",
+
+  "PASSWORD ACCEPTED. YOUR LUCK IS NOT.",
+
+  "MEETING ID LOOKS SUSPICIOUS.",
+
+  "FINE. WE'LL LET YOU IN."
+
+];
+
+let loginAttempts=0;
+
+
+$("loginBtn").onclick=()=>{
+
+  loginAttempts++;
+
+  $("attemptCount").textContent=
+    Math.min(loginAttempts,5);
+
+  $("rageText").textContent=
+    loginMessages[
+      Math.min(loginAttempts-1,4)
+    ];
+
+  /*
+    First four clicks are pure Ragebait.
+  */
+
+  if(loginAttempts<5){
+
+    $("authBox").classList.add("rage");
+
+    setTimeout(()=>{
+
+      $("authBox").classList.remove("rage");
+
+    },550);
+
+    const randomMessages=[
+
+      "LOGIN? ABSOLUTELY NOT YET.",
+
+      "YOU THOUGHT THAT WOULD WORK?",
+
+      "KEEP CLICKING. THIS IS YOUR LIFE NOW.",
+
+      "THE BUTTON HAS JUDGED YOU."
+
+    ];
+
+    toast(
+      randomMessages[
+        Math.floor(
+          Math.random()*randomMessages.length
+        )
+      ],
+      true
+    );
+
+    return;
+
+  }
+
+
+  /*
+    Fifth click actually validates.
+  */
+
+  const user=
+    $("email").value.trim().toLowerCase();
+
+  const pass=
+    $("password").value;
+
+
+  /*
+    NORMAL ZOOM-STYLE ACCESS:
+    Keep all existing ragebait, animations, delays and visual effects,
+    but do not lock ordinary users out with hard-coded credentials.
+    Any non-empty username can join. The old demo host credentials
+    still grant host mode; everyone else joins as a participant.
+  */
+
+  if(!user){
+
+    toast(
+      "PLEASE ENTER YOUR NAME / USERNAME.",
+      true
+    );
+
+    return;
+
+  }
+
+  if(!pass){
+
+    toast(
+      "PLEASE ENTER ANY PASSWORD TO CONTINUE.",
+      true
+    );
+
+    return;
+
+  }
+
+  if(user==="host@uigonebad.local" || user==="host"){
+
+    state.role="host";
+
+  }
+  else{
+
+    state.role="participant";
+
+  }
+
+
+  if(!$("meetingId").value.trim()){
+
+    $("meetingId").value=
+      "847 291 6654";
+
+  }
+
+  if(!$("meetingPass").value.trim()){
+
+    $("meetingPass").value=
+      "BADUI2026";
+
+  }
+
+
+  if(
+    $("meetingId").value.replace(/\D/g,"")
+      !=="8472916654"
+    ||
+    $("meetingPass").value
+      !=="BADUI2026"
+  ){
+
+    toast(
+      "MEETING CREDENTIALS REJECTED.",
+      true
+    );
+
+    return;
+
+  }
+
+
+  show("join");
+
+  startPreview();
+
+};
+
+
+function centerRage(message,duration=1800){
+  $("rageCenterMessage").textContent=message;
+  $("rageCenter").classList.add("active");
+  setTimeout(()=>$("rageCenter").classList.remove("active"),duration);
+}
+
+/* =========================================================
+   PAGE 3 — CAMERA + AUDIO
+   ========================================================= */
+
+async function startPreview(){
+
+  try{
+
+    state.localStream=
+      await navigator.mediaDevices.getUserMedia({
+
+        video:true,
+
+        audio:true
+
+      });
+
+    $("localPreview").srcObject=
+      state.localStream;
+
+  }
+
+  catch(e){
+
+    toast(
+      "BROWSER CAMERA/MIC PERMISSION NOT AVAILABLE — SIMULATION MODE.",
+      true
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   TRACK CONTROL
+   ========================================================= */
+
+function setTracks(){
+
+  if(!state.localStream)return;
+
+  state.localStream
+    .getAudioTracks()
+    .forEach(t=>{
+      t.enabled=state.mic;
+    });
+
+  state.localStream
+    .getVideoTracks()
+    .forEach(t=>{
+      t.enabled=state.cam;
+    });
+
+}
+
+
+/* =========================================================
+   PREJOIN MICROPHONE
+   ========================================================= */
+
+$("joinMic").onclick=()=>{
+  const b=$("joinMic");
+  const attempts=Number(b.dataset.attempts||0)+1;
+  b.dataset.attempts=attempts;
+
+  const messages=[
+    "I HEARD THAT.",
+    "WHY DID YOU TURN ME ON?",
+    "THAT WAS A MISTAKE."
+  ];
+
+  if(attempts<=3){
+    centerRage(messages[attempts-1],1500);
+    b.style.position="fixed";
+    b.style.zIndex="990";
+    b.style.left=(Math.random()*72+12)+"vw";
+    b.style.top=(Math.random()*62+18)+"vh";
+    b.style.transform=`rotate(${Math.random()*24-12}deg)`;
+    state.mic=attempts%2===0;
+    setTracks();
+    if(attempts===3){
+      setTimeout(()=>{
+        b.style.position="static";
+        b.style.left="";
+        b.style.top="";
+        b.style.transform="";
+        state.mic=true;
+        b.textContent="🎤 MICROPHONE: ON";
+        setTracks();
+      },1500);
+    }
+    return;
+  }
+
+  state.mic=!state.mic;
+  b.textContent=`🎤 MICROPHONE: ${state.mic?"ON":"OFF"}`;
+  setTracks();
+};
+
+/* =========================================================
+   PREJOIN CAMERA RAGEBAIT
+   ========================================================= */
+
+$("joinCam").onclick=async()=>{
+  if(state.cam){
+    state.cam=false;
+    $("joinCam").textContent="📷 CAMERA: OFF";
+    $("preview").classList.add("off");
+    setTracks();
+    return;
+  }
+
+  state.cameraAttempts++;
+
+  if(state.cameraAttempts===1){
+    const fake=$("preview");
+    fake.classList.remove("off");
+    fake.classList.add("rage");
+    fake.innerHTML='<div style="font-family:"Press Start 2P";color:var(--pink);font-size:clamp(14px,3vw,26px);text-align:center;line-height:1.7">NOT YOU.<br>JUST A LITTLE SOMETHING ELSE.</div>';
+    $("cameraRage").textContent="I KNOW IT'S NOT YOU. BUT I LIKE THE FUN.";
+    centerRage("I KNOW IT'S NOT YOU. BUT I LIKE THE FUN.",2000);
+
+    setTimeout(async()=>{
+      fake.classList.remove("rage");
+      fake.innerHTML='<video id="localPreview" autoplay muted playsinline></video>';
+      const video=$("localPreview");
+      try{
+        if(!state.localStream){
+          state.localStream=await navigator.mediaDevices.getUserMedia({video:true,audio:true});
+        }
+        video.srcObject=state.localStream;
+        state.cam=true;
+        $("joinCam").textContent="📷 CAMERA: ON";
+        $("cameraRage").textContent="FINE. CAMERA ENABLED. HAPPY NOW?";
+        setTracks();
+      }catch(e){
+        fake.classList.add("off");
+        $("cameraRage").textContent="CAMERA PREVIEW SIMULATION MODE.";
+        toast("CAMERA PERMISSION WASN'T AVAILABLE — USING SIMULATION MODE.",true);
+      }
+    },2000);
+    return;
+  }
+
+  state.cam=true;
+  $("joinCam").textContent="📷 CAMERA: ON";
+  $("preview").classList.remove("off");
+  setTracks();
+};
+
+/* =========================================================
+   SPEAKER RAGEBAIT
+   ========================================================= */
+
+$("speakerTest").onclick=()=>{
+
+  state.speakerAttempts++;
+
+  if(state.speakerAttempts<3){
+
+    const msgs=[
+
+      "SPEAKER TEST: SOUND EXISTS. WE WON'T PLAY IT YET.",
+
+      "SPEAKER TEST: YOU ALMOST HEARD SOMETHING."
+
+    ];
+
+    centerRage(msgs[state.speakerAttempts-1],1500);
+
+    $("cameraRage").textContent=
+      msgs[state.speakerAttempts-1];
+
+    return;
+
+  }
+
+  toast(
+    "🔊 SPEAKER TEST PASSED. UNFORTUNATELY.",
+  );
+
+  $("cameraRage").textContent=
+    "AUDIO CHECK COMPLETE. YOU MAY PROCEED.";
+
+};
+
+
+/* =========================================================
+   RANDOM FULL-SCREEN PREJOIN ATTACK
+   ========================================================= */
+
+let unsafeRunning=false;
+
+function triggerUnsafeScreen(){
+
+  if(unsafeRunning)return;
+
+  if($("join").classList.contains("hidden"))return;
+
+  unsafeRunning=true;
+
+  $("unsafeOverlay").classList.add("active");
+
+  /*
+    Full-screen anonymous message stays for 2 seconds.
+  */
+
+  setTimeout(()=>{
+
+    $("unsafeOverlay").classList.remove("active");
+
+    unsafeRunning=false;
+
+  },2000);
+
+}
+
+
+/*
+  Randomly trigger the 2-second full-screen interruption.
+*/
+
+setInterval(()=>{
+
+  if(
+    !$("join").classList.contains("hidden")
+    &&
+    Math.random()<0.55
+  ){
+
+    triggerUnsafeScreen();
+
+  }
+
+},8500);
+
+
+/* =========================================================
+   JOIN MEETING
+   ========================================================= */
+
+$("joinMeeting").onclick=()=>{
+
+  if(state.locked){
+
+    toast(
+      "MEETING IS LOCKED. NICE TRY.",
+      true
+    );
+
+    return;
+
+  }
+
+  show("app");
+
+  renderGrid();
+
+  renderParticipants();
+
+  toast(
+    `${state.role.toUpperCase()} ACCESS GRANTED.`
+  );
+
+};
+
+
+/* =========================================================
+   MEETING GRID
+   ========================================================= */
+
+function makeTile(p,i){
+
+  const d=
+    document.createElement("div");
+
+  d.className=
+    "tile"+
+    (i===1?" speaking":"");
+
+
+  if(p.local && state.localStream){
+
+    const v=
+      document.createElement("video");
+
+    v.autoplay=true;
+
+    v.muted=true;
+
+    v.playsInline=true;
+
+    v.srcObject=
+      state.localStream;
+
+    d.appendChild(v);
+
+  }
+
+  else if(p.cam && !p.local){
+
+    const v=
+      document.createElement("video");
+
+    v.autoplay=true;
+
+    v.muted=true;
+
+    v.playsInline=true;
+
+    d.appendChild(v);
+
+    d.style.background=
+      `radial-gradient(
+        circle at ${30+i*11}% ${30+i*7}%,
+        #39234b,
+        transparent 35%
+      ),
+      #0b0710`;
+
+  }
+
+  else{
+
+    const a=
+      document.createElement("div");
+
+    a.className="avatar";
+
+    a.textContent=
+      p.name
+        .slice(0,1)
+        .toUpperCase();
+
+    d.appendChild(a);
+
+  }
+
+
+  const n=
+    document.createElement("div");
+
+  n.className="tile-name";
+
+  n.textContent=
+    p.name+
+    (
+      p.local
+      ?
+      " (You)"
+      :
+      (
+        p.role==="Host"
+        ?
+        " • Host"
+        :
+        ""
+      )
+    );
+
+  d.appendChild(n);
+
+
+  const m=
+    document.createElement("div");
+
+  m.className="mic-state";
+
+  m.textContent=
+    p.mic?"🎤":"🔇";
+
+  d.appendChild(m);
+
+
+  return d;
+
+}
+
+
+function renderGrid(){
+
+  const g=$("grid");
+
+  g.innerHTML="";
+
+  const local={
+
+    name:
+      $("displayName").value
+      ||
+      "You",
+
+    role:
+      state.role==="host"
+      ?
+      "Host"
+      :
+      "Participant",
+
+    mic:state.mic,
+
+    cam:state.cam,
+
+    local:true
+
+  };
+
+  const all=[
+    local,
+    ...state.participants
+  ];
+
+  all.forEach((p,i)=>{
+
+    g.appendChild(
+      makeTile(p,i)
+    );
+
+  });
+
+
+  if(state.sharing){
+
+    showShare();
+
+  }
+
+}
+
+
+/* =========================================================
+   SCREEN SHARE VIEW
+   ========================================================= */
+
+function showShare(){
+
+  $("grid").innerHTML="";
+
+  const d=
+    document.createElement("div");
+
+  d.className="screen-share";
+
+  d.id="screenShareBox";
+
+  d.innerHTML=
+    state.screenStream
+    ?
+    "<div>🖥 SCREEN SHARE ACTIVE<br><small>YOUR SCREEN IS BEING SHARED</small></div>"
+    :
+    "<div>🖥 SCREEN SHARE<br><small>SIMULATED</small></div>";
+
+  $("grid").appendChild(d);
+
+}
+
+
+/* =========================================================
+   PARTICIPANTS
+   ========================================================= */
+
+function renderParticipants(){
+
+  const b=
+    $("sideBody");
+
+  b.innerHTML="";
+
+
+  const people=[
+
+    {
+      name:
+        $("displayName").value
+        ||
+        "You",
+
+      role:
+        state.role==="host"
+        ?
+        "Host"
+        :
+        "Participant",
+
+      mic:state.mic,
+
+      cam:state.cam,
+
+      local:true
+
+    },
+
+    ...state.participants
+
+  ];
+
+
+  const add=
+    document.createElement("button");
+
+  add.className="big-btn";
+
+  add.textContent=
+    "＋ ADD PARTICIPANTS";
+
+  add.onclick=
+    addParticipants;
+
+  b.appendChild(add);
+
+
+  people.forEach((p)=>{
+
+    const row=
+      document.createElement("div");
+
+    row.className="person";
+
+    row.innerHTML=
+      `
+      <div class="mini">
+        ${p.name[0]}
+      </div>
+
+      <div class="person-main">
+        <b>${escapeHtml(p.name)}</b>
+        <br>
+        ${p.role}
+      </div>
+
+      <div class="person-actions">
+
+        <button>
+          ${p.mic?"🎤":"🔇"}
+        </button>
+
+        <button>
+          ${p.cam?"📷":"🚫"}
+        </button>
+
+      </div>
+      `;
+
+
+    if(
+      state.role==="host"
+      &&
+      !p.local
+    ){
+
+      row.querySelectorAll("button")[0]
+        .onclick=()=>{
+
+          p.mic=!p.mic;
+
+          renderParticipants();
+
+          renderGrid();
+
+        };
+
+
+      row.querySelectorAll("button")[1]
+        .onclick=()=>{
+
+          p.cam=!p.cam;
+
+          renderParticipants();
+
+          renderGrid();
+
+        };
+
+    }
+
+
+    b.appendChild(row);
+
+  });
+
+}
+
+
+/* =========================================================
+   SIDEBAR
+   ========================================================= */
+
+function openSide(type){
+
+  $("side").classList.remove("hidden");
+
+  $("sideTitle").textContent=
+    type.toUpperCase();
+
+  if(type==="chat"){
+
+    renderChat();
+
+  }
+
+  else{
+
+    renderParticipants();
+
+  }
+
+}
+
+
+$("closeSide").onclick=()=>{
+
+  $("side").classList.add("hidden");
+
+};
+
+
+$("participantsBtn").onclick=()=>{
+
+  openSide("participants");
+
+};
+
+
+$("chatBtn").onclick=()=>{
+
+  openSide("chat");
+
+};
+
+
+/* =========================================================
+   HTML ESCAPE
+   ========================================================= */
+
+function escapeHtml(s){
+
+  return s.replace(
+    /[&<>"']/g,
+    c=>({
+
+      "&":"&amp;",
+      "<":"&lt;",
+      ">":"&gt;",
+      '"':"&quot;",
+      "'":"&#39;"
+
+    }[c])
+  );
+
+}
+
+
+/* =========================================================
+   CHAT
+   ========================================================= */
+
+function renderChat(){
+
+  const b=
+    $("sideBody");
+
+  b.innerHTML="";
+
+
+  state.chat.forEach(m=>{
+
+    const d=
+      document.createElement("div");
+
+    d.className="chat-msg";
+
+    d.innerHTML=
+      `<b>${escapeHtml(m.name)}</b>: ${escapeHtml(m.text)}`;
+
+    b.appendChild(d);
+
+  });
+
+
+  const f=
+    document.createElement("div");
+
+  f.className="chat-form";
+
+  f.innerHTML=
+    `
+    <input
+      id="chatInput"
+      placeholder="type something chaotic..."
+    >
+
+    <button
+      id="sendChat"
+      class="ghost-btn">
+      SEND
+    </button>
+    `;
+
+  b.appendChild(f);
+
+
+  $("sendChat").onclick=()=>{
+
+    const v=
+      $("chatInput")
+      .value
+      .trim();
+
+    if(v){
+
+      state.chat.push({
+
+        name:
+          $("displayName").value
+          ||
+          "You",
+
+        text:v
+
+      });
+
+      renderChat();
+
+    }
+
+  };
+
+
+  $("chatInput").onkeydown=e=>{
+
+    if(e.key==="Enter"){
+
+      $("sendChat").click();
+
+    }
+
+  };
+
+}
+
+
+/* =========================================================
+   MEETING MICROPHONE
+   ========================================================= */
+
+function toggleMic(){
+
+  state.mic=!state.mic;
+
+  setTracks();
+
+  $("micBtn").textContent=
+    state.mic
+    ?
+    "🎤 MUTE"
+    :
+    "🔇 UNMUTE";
+
+  $("micBtn").className=
+    "control "+
+    (
+      state.mic
+      ?
+      "on"
+      :
+      "off"
+    );
+
+  renderGrid();
+
+}
+
+$("micBtn").onclick=
+  toggleMic;
+
+
+/* =========================================================
+   MEETING CAMERA
+   ========================================================= */
+
+function toggleCam(){
+
+  if(state.cam){
+
+    state.cam=false;
+
+    setTracks();
+
+    $("camBtn").textContent=
+      "📷 START VIDEO";
+
+    $("camBtn").className=
+      "control off";
+
+    renderGrid();
+
+    return;
+
+  }
+
+
+  state.cameraAttempts++;
+
+
+  if(state.cameraAttempts<=3){
+
+    const msgs=[
+
+      "YOUR CAMERA IS WORKING FINE. WE JUST DON'T WANT TO SHOW IT.",
+
+      "CAMERA SAYS NO.",
+
+      "ERROR 404: YOUR FACE HAS BEEN MISPLACED."
+
+    ];
+
+    toast(
+      msgs[state.cameraAttempts-1],
+      true
+    );
+
+    return;
+
+  }
+
+
+  state.cam=true;
+
+  setTracks();
+
+  $("camBtn").textContent=
+    "📷 STOP VIDEO";
+
+  $("camBtn").className=
+    "control on";
+
+  renderGrid();
+
+  toast(
+    "CAMERA FINALLY WORKS. INCREDIBLE."
+  );
+
+}
+
+
+$("camBtn").onclick=
+  toggleCam;
+
+
+/* =========================================================
+   SCREEN SHARE
+   ========================================================= */
+
+async function shareScreen(){
+
+  if(state.sharing){
+
+    stopShare();
+
+    return;
+
+  }
+
+
+  try{
+
+    state.screenStream=
+      await navigator.mediaDevices
+      .getDisplayMedia({
+        video:true
+      });
+
+    state.sharing=true;
+
+    $("shareBtn").textContent=
+      "🛑 STOP SHARE";
+
+    showShare();
+
+    state.screenStream
+      .getVideoTracks()[0]
+      .onended=()=>{
+
+        stopShare();
+
+      };
+
+  }
+
+  catch(e){
+
+    toast(
+      "SCREEN SHARE CANCELLED. THE UI IS JUDGING YOU.",
+      true
+    );
+
+  }
+
+}
+
+
+function stopShare(){
+
+  if(state.screenStream){
+
+    state.screenStream
+      .getTracks()
+      .forEach(t=>t.stop());
+
+  }
+
+  state.screenStream=null;
+
+  state.sharing=false;
+
+  $("shareBtn").textContent=
+    "🖥 SHARE";
+
+  renderGrid();
+
+}
+
+
+$("shareBtn").onclick=
+  shareScreen;
+
+
+/* =========================================================
+   REACTIONS
+   ========================================================= */
+
+$("reactBtn").onclick=()=>{
+
+  const reactions=[
+    "👍",
+    "❤️",
+    "😂",
+    "😮",
+    "👏",
+    "🔥",
+    "💀"
+  ];
+
+  const r=
+    reactions[
+      Math.floor(
+        Math.random()*reactions.length
+      )
+    ];
+
+
+  const d=
+    document.createElement("div");
+
+  d.textContent=r;
+
+  d.style.cssText=
+    `
+    position:fixed;
+    left:50%;
+    bottom:100px;
+    font-size:55px;
+    z-index:800;
+    animation:float 2s forwards
+    `;
+
+  document.body.appendChild(d);
+
+  setTimeout(()=>{
+    d.remove();
+  },1900);
+
+  toast(
+    "REACTION SENT. THE MEETING WILL NEVER RECOVER."
+  );
+
+};
+
+
+/* =========================================================
+   RECORDING
+   ========================================================= */
+
+let recording=false;
+
+$("recordBtn").onclick=()=>{
+
+  recording=!recording;
+
+  $("recordBtn").textContent=
+    recording
+    ?
+    "⏹ STOP RECORDING"
+    :
+    "🔴 START RECORDING";
+
+  $("meetingStatus").innerHTML=
+    recording
+    ?
+    "🔴 RECORDING • <span class='success'>LIVE</span>"
+    :
+    "UI GONE BAD MEETING • <span class='success'>CONNECTED</span>";
+
+  toast(
+    recording
+    ?
+    "RECORDING STARTED (DEMO MODE)."
+    :
+    "RECORDING STOPPED."
+  );
+
+};
+
+
+/* =========================================================
+   CAPTIONS
+   ========================================================= */
+
+$("captionsBtn").onclick=()=>{
+
+  toast(
+    "LIVE CAPTIONS ENABLED — SIMULATION MODE."
+  );
+
+};
+
+
+/* =========================================================
+   SETTINGS
+   ========================================================= */
+
+$("settingsBtn").onclick=()=>{
+
+  modal(`
+
+    <h2>SETTINGS</h2>
+
+    <div class="modal-row">
+      <span>Dark mode</span>
+      <b>PERMANENTLY ON</b>
+    </div>
+
+    <div class="modal-row">
+      <span>Chaos engine</span>
+
+      <button
+        onclick="
+          state.chaos=!state.chaos;
+          toast(
+            state.chaos
+            ?
+            'CHAOS ON'
+            :
+            'CHAOS OFF'
+          );
+          closeModal();
+        ">
+        TOGGLE
+      </button>
+
+    </div>
+
+    <div class="modal-row">
+      <span>Audio</span>
+
+      <b>
+        ${state.mic
+          ?
+          "MIC ACTIVE"
+          :
+          "MIC MUTED"}
+      </b>
+
+    </div>
+
+    <button
+      class="big-btn"
+      onclick="closeModal()">
+      CLOSE
+    </button>
+
+  `);
+
+};
+
+
+/* =========================================================
+   MEETING INFO
+   ========================================================= */
+
+$("infoBtn").onclick=()=>{
+
+  modal(`
+
+    <h2>MEETING INFO</h2>
+
+    <p>
+      <b>Meeting ID:</b>
+      847 291 6654
+    </p>
+
+    <p>
+      <b>Passcode:</b>
+      BADUI2026
+    </p>
+
+    <p>
+      <b>Your role:</b>
+      ${state.role}
+    </p>
+
+    <p>
+      <b>Status:</b>
+      Connected
+    </p>
+
+    <button
+      class="big-btn"
+      onclick="closeModal()">
+      CLOSE
+    </button>
+
+  `);
+
+};
+
+
+/* =========================================================
+   ADD PARTICIPANTS RAGEBAIT
+   ========================================================= */
+
+function addParticipants(){
+
+  state.addAttempts++;
+
+  if(state.addAttempts<4){
+
+    const messages=[
+
+      "SAD. YOU DON'T HAVE ANYONE LIKE THAT.",
+
+      "STILL NOBODY. TRY AGAIN.",
+
+      "OKAY... WE'RE SEARCHING THE VOID."
+
+    ];
+
+    toast(
+      messages[state.addAttempts-1],
+      true
+    );
+
+    runawayAdd();
+
+    return;
+
+  }
+
+
+  modal(`
+
+    <h2>ADD PARTICIPANTS</h2>
+
+    <p>
+      Fine. We found some people.
+    </p>
+
+    <input
+      id="newPerson"
+      placeholder="Participant name"
+      style="
+        width:100%;
+        padding:12px;
+        background:#050408;
+        color:#fff;
+        border:2px solid #403052
+      "
+    >
+
+    <button
+      class="big-btn"
+      onclick="actuallyAdd()">
+      ADD
+    </button>
+
+  `);
+
+}
+
+
+function runawayAdd(){
+
+  const b=
+    $("addParticipantsBtn");
+
+  if(!b)return;
+
+  b.style.position="fixed";
+
+  b.style.zIndex=900;
+
+  b.style.left=
+    (Math.random()*70+10)+"vw";
+
+  b.style.top=
+    (Math.random()*65+15)+"vh";
+
+  b.style.transform=
+    `rotate(
+      ${Math.random()*30-15}deg
+    )`;
+
+  setTimeout(()=>{
+
+    b.style.position="static";
+
+    b.style.transform="none";
+
+  },700);
+
+}
+
+
+function actuallyAdd(){
+
+  const n=
+    $("newPerson")
+    .value
+    .trim()
+    ||
+    "Mystery Participant";
+
+  state.participants.push({
+
+    name:n,
+
+    role:"Participant",
+
+    mic:false,
+
+    cam:false
+
+  });
+
+  closeModal();
+
+  renderParticipants();
+
+  renderGrid();
+
+  toast(
+    n+
+    " HAS BEEN ADDED. WE FOUND ONE."
+  );
+
+}
+
+
+$("addParticipantsBtn").onclick=
+  addParticipants;
+
+
+/* =========================================================
+   MORE MENU
+   ========================================================= */
+
+$("moreBtn").onclick=()=>{
+
+  $("moreMenu")
+    .classList
+    .toggle("hidden");
+
+};
+
+
+/* =========================================================
+   SECURITY
+   ========================================================= */
+
+$("securityBtn").onclick=()=>{
+
+  if(state.role!=="host"){
+
+    toast(
+      "SECURITY CONTROLS ARE HOST-ONLY. NICE TRY.",
+      true
+    );
+
+    return;
+
+  }
+
+
+  modal(`
+
+    <h2>SECURITY</h2>
+
+    <div class="modal-row">
+
+      <span>
+        Lock meeting
+      </span>
+
+      <button
+        onclick="
+          state.locked=!state.locked;
+          toast(
+            state.locked
+            ?
+            'MEETING LOCKED'
+            :
+            'MEETING UNLOCKED'
+          );
+          closeModal();
+        ">
+
+        ${state.locked
+          ?
+          "UNLOCK"
+          :
+          "LOCK"}
+
+      </button>
+
+    </div>
+
+
+    <div class="modal-row">
+
+      <span>
+        Waiting room
+      </span>
+
+      <button
+        onclick="
+          state.waiting=!state.waiting;
+          toast(
+            state.waiting
+            ?
+            'WAITING ROOM ON'
+            :
+            'WAITING ROOM OFF'
+          );
+          closeModal();
+        ">
+
+        ${state.waiting
+          ?
+          "DISABLE"
+          :
+          "ENABLE"}
+
+      </button>
+
+    </div>
+
+
+    <div class="modal-row">
+
+      <span>
+        Mute all
+      </span>
+
+      <button
+        onclick="
+          state.participants.forEach(
+            p=>p.mic=false
+          );
+          renderGrid();
+          renderParticipants();
+          toast('EVERYONE HAS BEEN MUTED');
+          closeModal();
+        ">
+
+        MUTE ALL
+
+      </button>
+
+    </div>
+
+
+    <button
+      class="big-btn"
+      onclick="closeModal()">
+
+      CLOSE
+
+    </button>
+
+  `);
+
+};
+
+
+/* =========================================================
+   GALLERY / SPEAKER VIEW
+   ========================================================= */
+
+$("viewBtn").onclick=()=>{
+
+  state.view=
+    state.view==="gallery"
+    ?
+    "speaker"
+    :
+    "gallery";
+
+  $("viewBtn").textContent=
+    "VIEW: "+
+    state.view.toUpperCase();
+
+  $("grid").style.gridTemplateColumns=
+    state.view==="speaker"
+    ?
+    "1fr"
+    :
+    "repeat(3,1fr)";
+
+  if(state.view==="speaker"){
+
+    $("grid")
+      .classList
+      .add("rage");
+
+  }
+
+  else{
+
+    $("grid")
+      .classList
+      .remove("rage");
+
+  }
+
+};
+
+
+/* =========================================================
+   MAXIMUM CHAOS
+   ========================================================= */
+
+$("chaosBtn").onclick=()=>{
+
+  state.chaos=!state.chaos;
+
+  document.body
+    .classList
+    .toggle(
+      "rage",
+      state.chaos
+    );
+
+  toast(
+    state.chaos
+    ?
+    "MAXIMUM CHAOS ACTIVATED."
+    :
+    "CHAOS TEMPORARILY CONTAINED."
+  );
+
+};
+
+
+/* =========================================================
+   LEAVE MEETING
+   ========================================================= */
+
+$("leaveBtn").onclick=()=>{
+
+  if(state.role==="host"){
+
+    modal(`
+
+      <h2>
+        END MEETING?
+      </h2>
+
+      <p>
+        As host, you can leave or end it for everyone.
+      </p>
+
+      <button
+        class="big-btn"
+        onclick="location.reload()">
+
+        END FOR EVERYONE
+
+      </button>
+
+      <button
+        class="big-btn"
+        onclick="closeModal()">
+
+        CANCEL
+
+      </button>
+
+    `);
+
+  }
+
+  else{
+
+    if(confirm("Leave meeting?")){
+
+      location.reload();
+
+    }
+
+  }
+
+};
+
+
+/* =========================================================
+   RANDOM MEETING CHAOS
+   ========================================================= */
+
+setInterval(()=>{
+
+  if(
+    $("app")
+      .classList
+      .contains("hidden")
+  ){
+
+    return;
+
+  }
+
+
+  const notes=[
+
+    "SOMEONE'S INTERNET LOOKS SUSPICIOUS.",
+
+    "YOUR MEETING IS EXPERIENCING EMOTIONAL DAMAGE.",
+
+    "UI GONE BAD HAS ENTERED THE CHAT.",
+
+    "A PARTICIPANT MAY OR MAY NOT BE LISTENING.",
+
+    "ANONYMOUS HAS ENTERED THE MEETING.",
+
+    "YOUR UI IS MAKING QUESTIONABLE DECISIONS."
+
+  ];
+
+
+  if(Math.random()<.5){
+
+    toast(
+      notes[
+        Math.floor(
+          Math.random()*notes.length
+        )
+      ]
+    );
+
+  }
+
+},9000);
+
+
+/* =========================================================
+   FLOATING REACTION ANIMATION
+   ========================================================= */
+
+const style=
+  document.createElement("style");
+
+style.textContent=`
+
+@keyframes float{
+
+  from{
+
+    transform:
+      translateY(0)
+      scale(1);
+
+    opacity:1;
+
+  }
+
+  to{
+
+    transform:
+      translateY(-260px)
+      scale(1.4);
+
+    opacity:0;
+
+  }
+
+}
+
+`;
+
+document.head.appendChild(style);
+
+</script>
+
+
+
+<!-- =========================================================
+     PAGE 4 RAGEBAIT UPGRADE LAYER
+     Keeps the existing meeting functionality and adds
+     progressive, recoverable ragebait to the controls.
+     ========================================================= -->
+<style>
+#chaosMeter{
+  position:fixed;
+  left:50%;
+  top:54px;
+  transform:translateX(-50%);
+  z-index:700;
+  min-width:180px;
+  text-align:center;
+  padding:7px 12px;
+  border:2px solid #b6ff00;
+  background:#09070d;
+  color:#b6ff00;
+  font:700 10px/1.2 'Press Start 2P',monospace;
+  box-shadow:4px 4px 0 #ff2bd6;
+  pointer-events:none;
+}
+#chaosMeter.danger{animation:meterJitter .18s steps(2) 2}
+@keyframes meterJitter{
+  0%{transform:translateX(-50%) rotate(0)}
+  50%{transform:translateX(calc(-50% + 7px)) rotate(-2deg)}
+  100%{transform:translateX(-50%) rotate(0)}
+}
+.page4-rage-moving{
+  position:fixed!important;
+  z-index:9999!important;
+}
+.rage-chaos-glitch{animation:page4Glitch .32s steps(2) 2}
+@keyframes page4Glitch{
+  0%{transform:translate(0,0) skew(0)}
+  25%{transform:translate(7px,-4px) skew(5deg)}
+  50%{transform:translate(-8px,5px) skew(-7deg)}
+  75%{transform:translate(5px,2px) skew(4deg)}
+  100%{transform:translate(0,0) skew(0)}
+}
+</style>
+<script>
+(function(){
+  const p4={
+    mic:0, cam:0, participants:0, chat:0, share:0,
+    react:0, record:0, settings:0, security:0, leave:0,
+    chaos:100, joined:true
+  };
+
+  const q=id=>document.getElementById(id);
+
+  const page4Messages={
+    mic:[
+      'YOU REALLY NEED SILENCE THAT BADLY?',
+      'THE MUTE BUTTON HAS OTHER PLANS.',
+      'STOP CHASING THE MICROPHONE.',
+      'FINE. YOU MAY HAVE SILENCE.'
+    ],
+    cam:[
+      'YOUR CAMERA IS WORKING. WE JUST DON\'T WANT TO SHOW YOU.',
+      'NOPE. NOT YET.',
+      'THE CAMERA HAS DEVELOPED TRUST ISSUES.',
+      'FINE. FACE REVEAL UNLOCKED.'
+    ],
+    participants:[
+      'WHO EXACTLY ARE YOU INVITING?',
+      'THE PARTICIPANTS ARE HIDING.',
+      'STOP LOOKING FOR FRIENDS.',
+      'FINE. HERE ARE YOUR PEOPLE.'
+    ],
+    chat:[
+      'YOU HAVE SOMETHING TO SAY?',
+      'THE CHAT IS THINKING ABOUT IT.',
+      'OKAY. YOU MAY SPEAK NOW.'
+    ],
+    share:[
+      'ARE YOU SURE YOU WANT TO SHARE THAT?',
+      'YOUR SCREEN HAS REQUESTED PRIVACY.',
+      'GOOD LUCK. THE SCREEN IS YOURS NOW.'
+    ],
+    react:[
+      'YOU REALLY WANT TO REACT TO THAT?',
+      'THE EMOJI MACHINE IS MISBEHAVING.',
+      'FINE. SEND YOUR LITTLE EMOJI.'
+    ],
+    record:[
+      'RECORDING THIS IS EVIDENCE.',
+      'ARE YOU SURE YOU WANT A PERMANENT MEMORY?',
+      'FINE. WE ARE RECORDING THE CHAOS.'
+    ],
+    settings:[
+      'SETTINGS? YOU TRUST YOURSELF WITH SETTINGS?',
+      'THE SETTINGS ARE MOVING.',
+      'FINE. OPEN THE SETTINGS.'
+    ],
+    security:[
+      'SECURITY? THAT SOUNDS IMPORTANT.',
+      'ACCESS DENIED. NICE TRY.',
+      'FINE. SECURITY CONTROLS UNLOCKED.'
+    ],
+    leave:[
+      'YOU\'RE LEAVING ALREADY?',
+      'NO.',
+      'WE JUST STARTED.',
+      'FINE. YOU MAY TRY TO LEAVE.'
+    ]
+  };
+
+  function lowerChaos(amount){
+    p4.chaos=Math.max(0,p4.chaos-amount);
+    const m=q('chaosMeter');
+    if(m){
+      m.textContent='UI STABILITY: '+p4.chaos+'%';
+      m.classList.remove('danger'); void m.offsetWidth; m.classList.add('danger');
+    }
+  }
+
+  function rage(kind,index,duration=1500){
+    const arr=page4Messages[kind]||[];
+    const msg=arr[Math.min(index,arr.length-1)]||'THE UI DISAGREES.';
+    if(typeof centerRage==='function') centerRage(msg,duration);
+    else if(typeof toast==='function') toast(msg,true);
+  }
+
+  function moveButton(id){
+    const b=q(id); if(!b)return;
+    b.classList.add('page4-rage-moving');
+    b.style.left=(8+Math.random()*76)+'vw';
+    b.style.top=(12+Math.random()*70)+'vh';
+    b.style.transform='rotate('+(Math.random()*40-20)+'deg) scale('+(0.9+Math.random()*0.3)+')';
+    setTimeout(()=>{
+      b.classList.remove('page4-rage-moving');
+      b.style.position=''; b.style.left=''; b.style.top=''; b.style.transform='';
+    },1100);
+  }
+
+  function glitch(id){
+    const b=q(id); if(!b)return;
+    b.classList.remove('rage-chaos-glitch'); void b.offsetWidth; b.classList.add('rage-chaos-glitch');
+  }
+
+  function readyMeter(){
+    if(q('chaosMeter'))return;
+    const m=document.createElement('div');
+    m.id='chaosMeter';
+    m.textContent='UI STABILITY: 100%';
+    document.body.appendChild(m);
+  }
+
+  // MIC: 3 ragebait attempts, 4th works.
+  q('micBtn').onclick=function(){
+    p4.mic++;
+    if(p4.mic<=3){
+      rage('mic',p4.mic-1);
+      moveButton('micBtn'); glitch('micBtn'); lowerChaos(9);
+      return;
+    }
+    toggleMic();
+    rage('mic',3,1200);
+  };
+
+  // CAMERA: 3 ragebait attempts, 4th works.
+  q('camBtn').onclick=function(){
+    if(state.cam){ toggleCam(); return; }
+    p4.cam++;
+    if(p4.cam<=3){
+      rage('cam',p4.cam-1); glitch('camBtn'); moveButton('camBtn'); lowerChaos(8); return;
+    }
+    toggleCam(); rage('cam',3,1200);
+  };
+
+  // PARTICIPANTS: 3 escape attempts, then open the real sidebar.
+  q('participantsBtn').onclick=function(){
+    p4.participants++;
+    if(p4.participants<=3){
+      rage('participants',p4.participants-1); moveButton('participantsBtn'); glitch('participantsBtn'); lowerChaos(7); return;
+    }
+    openSide('participants');
+    rage('participants',3,1100);
+  };
+
+  // CHAT: 2 interruptions, then the real chat opens.
+  q('chatBtn').onclick=function(){
+    p4.chat++;
+    if(p4.chat<=2){
+      rage('chat',p4.chat-1); glitch('chatBtn'); lowerChaos(6); return;
+    }
+    openSide('chat');
+    rage('chat',2,1100);
+  };
+
+  // SHARE: 2 ragebait attempts, then the real browser share dialog works.
+  q('shareBtn').onclick=async function(){
+    if(state.sharing){ stopShare(); return; }
+    p4.share++;
+    if(p4.share<=2){
+      rage('share',p4.share-1); moveButton('shareBtn'); lowerChaos(8); return;
+    }
+    await shareScreen();
+    rage('share',2,1100);
+  };
+
+  // REACT: first two clicks are chaos, third sends a reaction.
+  q('reactBtn').onclick=function(){
+    p4.react++;
+    if(p4.react<=2){
+      rage('react',p4.react-1); glitch('reactBtn'); lowerChaos(5); return;
+    }
+    const reactions=['👍','❤️','😂','😮','👏','🔥','💀'];
+    const r=reactions[Math.floor(Math.random()*reactions.length)];
+    const d=document.createElement('div');
+    d.textContent=r;
+    d.style.cssText='position:fixed;left:'+(20+Math.random()*60)+'vw;bottom:100px;font-size:55px;z-index:800;animation:float 2s forwards';
+    document.body.appendChild(d); setTimeout(()=>d.remove(),1900);
+    rage('react',2,1000); lowerChaos(2);
+  };
+
+  // RECORD: two warnings, then real demo recording toggle.
+  q('recordBtn').onclick=function(){
+    p4.record++;
+    if(p4.record<=2){
+      rage('record',p4.record-1); glitch('recordBtn'); lowerChaos(6); return;
+    }
+    recording=!recording;
+    q('recordBtn').textContent=recording?'⏹ STOP RECORDING':'🔴 START RECORDING';
+    q('meetingStatus').innerHTML=recording?'🔴 RECORDING • <span class="success">LIVE</span>':'UI GONE BAD MEETING • <span class="success">CONNECTED</span>';
+    rage('record',2,1100);
+  };
+
+  // SETTINGS: two fake-outs, then the existing modal.
+  q('settingsBtn').onclick=function(){
+    p4.settings++;
+    if(p4.settings<=2){ rage('settings',p4.settings-1); moveButton('settingsBtn'); lowerChaos(5); return; }
+    p4.settings=0;
+    q('settingsBtn').__originalSettings?.();
+  };
+
+  // The original settings handler is recreated here so the third click works.
+  q('settingsBtn').__originalSettings=function(){
+    modal(`
+      <h2>SETTINGS</h2>
+      <div class="modal-row"><span>Dark mode</span><b>PERMANENTLY ON</b></div>
+      <div class="modal-row"><span>Chaos engine</span><button onclick="state.chaos=!state.chaos; toast(state.chaos?'CHAOS ON':'CHAOS OFF'); closeModal();">TOGGLE</button></div>
+      <div class="modal-row"><span>Audio</span><b>${state.mic?'MIC ACTIVE':'MIC MUTED'}</b></div>
+      <div class="big-btn" style="text-align:center;cursor:pointer" onclick="closeModal()">CLOSE</div>
+    `);
+  };
+
+  // SECURITY: two fake-outs, then the real host/security behavior.
+  q('securityBtn').onclick=function(){
+    p4.security++;
+    if(p4.security<=2){ rage('security',p4.security-1); glitch('securityBtn'); lowerChaos(5); return; }
+    p4.security=0;
+    if(state.role!=='host'){
+      rage('security',2,1300);
+      toast('SECURITY CONTROLS ARE HOST-ONLY. NICE TRY.',true);
+      return;
+    }
+    modal(`
+      <h2>SECURITY</h2>
+      <div class="modal-row"><span>Lock meeting</span><button onclick="state.locked=!state.locked; toast(state.locked?'MEETING LOCKED':'MEETING UNLOCKED'); closeModal();">${state.locked?'UNLOCK':'LOCK'}</button></div>
+      <div class="modal-row"><span>Waiting room</span><button onclick="state.waiting=!state.waiting; toast(state.waiting?'WAITING ROOM ON':'WAITING ROOM OFF'); closeModal();">${state.waiting?'DISABLE':'ENABLE'}</button></div>
+      <div class="modal-row"><span>Mute all</span><button onclick="state.participants.forEach(p=>p.mic=false); renderGrid(); renderParticipants(); toast('EVERYONE HAS BEEN MUTED'); closeModal();">MUTE ALL</button></div>
+      <button class="big-btn" onclick="closeModal()">CLOSE</button>
+    `);
+  };
+
+  // LEAVE: three ragebait clicks, fourth opens the normal confirmation.
+  q('leaveBtn').onclick=function(){
+    p4.leave++;
+    if(p4.leave<=3){ rage('leave',p4.leave-1); moveButton('leaveBtn'); glitch('leaveBtn'); lowerChaos(10); return; }
+    p4.leave=0;
+    rage('leave',3,900);
+    setTimeout(()=>{
+      if(state.role==='host'){
+        modal(`<h2>END MEETING?</h2><p>As host, you can leave or end it for everyone.</p><button class="big-btn" onclick="location.reload()">END FOR EVERYONE</button><button class="big-btn" onclick="closeModal()">CANCEL</button>`);
+      }else if(confirm('Leave meeting?')){
+        location.reload();
+      }
+    },950);
+  };
+
+  // Add-participants inside MORE already has its own 3-attempt ragebait.
+  // Make its messages centered by wrapping the existing handler.
+  const originalAdd=window.addParticipants;
+  if(typeof originalAdd==='function'){
+    q('addParticipantsBtn').onclick=function(){
+      const before=state.addAttempts;
+      originalAdd();
+      if(before<3){
+        rage('participants',Math.min(before,2));
+        lowerChaos(6);
+      }
+    };
+  }
+
+  // Make the meeting view itself occasionally rearrange, but never destroy controls.
+  setInterval(()=>{
+    if(q('app').classList.contains('hidden')||!state.chaos)return;
+    const g=q('grid'); if(!g||g.children.length<2)return;
+    if(Math.random()<0.45){
+      const kids=[...g.children];
+      kids.sort(()=>Math.random()-.5).forEach(k=>g.appendChild(k));
+      glitch('grid');
+    }
+  },15000);
+
+  // Random centered meeting interruptions.
+  const interruptions=[
+    'THIS MEETING COULD HAVE BEEN AN EMAIL.',
+    'WHY ARE YOU STILL HERE?',
+    'SOMETHING IS DEFINITELY WRONG.',
+    'STOP TOUCHING THINGS.',
+    'THE UI IS WATCHING YOUR CLICKS.',
+    'GOOD LUCK FINDING THE NORMAL BUTTON.'
+  ];
+  setInterval(()=>{
+    if(q('app').classList.contains('hidden'))return;
+    if(Math.random()<0.48 && typeof centerRage==='function'){
+      centerRage(interruptions[Math.floor(Math.random()*interruptions.length)],1300);
+      lowerChaos(2);
+    }
+  },11000);
+
+  readyMeter();
+})();
+</script>
+
+<script id="ui-gone-bad-final-rage-js">
+(()=>{
+  const $=id=>document.getElementById(id);
+  const wait=ms=>new Promise(r=>setTimeout(r,ms));
+  function center(msg,ms=1500){
+    let o=$("rageCenterFinal");
+    if(!o){o=document.createElement('div');o.id='rageCenterFinal';o.innerHTML='<div class="rage-card"></div>';document.body.appendChild(o)}
+    o.querySelector('.rage-card').textContent=msg;o.classList.add('active');
+    clearTimeout(o._t);o._t=setTimeout(()=>o.classList.remove('active'),ms);
+  }
+  function moveButton(btn,far=true){
+    if(!btn)return;
+    btn.classList.add('final-runaway');
+    const pad=20, w=Math.max(160,btn.offsetWidth||160), h=Math.max(55,btn.offsetHeight||55);
+    const x=pad+Math.random()*Math.max(1,innerWidth-w-pad*2), y=pad+Math.random()*Math.max(1,innerHeight-h-pad*2);
+    btn.style.left=x+'px';btn.style.top=y+'px';
+    btn.style.transform=`rotate(${(Math.random()*18-9).toFixed(1)}deg) scale(${(0.86+Math.random()*.28).toFixed(2)})`;
+  }
+  function resetButton(btn){if(!btn)return;btn.classList.remove('final-runaway');btn.style.left='';btn.style.top='';btn.style.transform='';}
+
+  /* PAGE 1 — ENTER MEETING ragebait, then existing blackout flow */
+  let enterAttempts=0, entering=false;
+  const enter=$('enterBtn');
+  if(enter){
+    enter.onclick=()=>{
+      if(entering)return;
+      enterAttempts++;
+      const msgs=[
+        'YOU REALLY WANT TO ENTER?',
+        'THAT WAS YOUR WARNING.',
+        'BAD DECISION.',
+        'WHY ARE YOU STILL CLICKING?',
+        'FINE. COME IN.'
+      ];
+      if(enterAttempts<5){
+        center(msgs[enterAttempts-1],1350);
+        enter.classList.add('page1-rage');
+
+        /* Keep the base runaway behavior, but make the button shrink
+           a little more on every click until it is comically tiny. */
+        const shrinkScale=Math.max(0.34, Math.pow(0.78, enterAttempts));
+        moveButton(enter,true);
+        enter.style.transform=`rotate(${(Math.random()*18-9).toFixed(1)}deg) scale(${shrinkScale.toFixed(2)})`;
+        enter.style.transition='left .16s, top .16s, transform .22s ease';
+
+        setTimeout(()=>enter.classList.remove('page1-rage'),700);
+        return;
+      }
+      resetButton(enter);
+      enter.style.transform='scale(0.30)';
+      center(msgs[4],900);
+      entering=true;
+      const blackout=$('blackout');
+      if(blackout){
+        blackout.classList.add('active');
+        $('blackoutMessage').innerHTML='WHAT HAVE YOU DONE?!<br><small>YOU REALLY CLICKED THAT?</small>';
+        setTimeout(()=>{blackout.classList.remove('active');$('blackoutMessage').innerHTML='YOU REALLY CLICKED THAT?!'},2000);
+      }
+      setTimeout(()=>{show('auth');entering=false;},5000);
+    };
+  }
+
+  /* PAGE 2 — new centered message every 20 seconds while credentials are visible */
+  const loginRageMessages=['TIRED YET?','OH, SO BAD.','STILL TRYING?','YOU\'RE TAKING TOO LONG.','THIS IS PAINFUL TO WATCH.','GIVE YOUR FINGERS A BREAK.','YOU REALLY DON\'T KNOW IT?','I\'M GETTING TIRED OF YOU.','WRONG ENERGY.','JUST GIVE UP.','I SAID WAIT.','ALMOST... MAYBE.'];
+  let loginRageIndex=0;
+  setInterval(()=>{
+    if($('auth') && !$('auth').classList.contains('hidden')){
+      center(loginRageMessages[loginRageIndex++%loginRageMessages.length],1700);
+    }
+  },20000);
+
+  /* PAGE 3 — JOIN MEETING uses the same fight-the-button pattern as mic */
+  let joinAttempts=0, joined=false;
+  const joinBtn=$('joinMeeting');
+  if(joinBtn){
+    joinBtn.onclick=()=>{
+      if(joined)return;
+      joinAttempts++;
+      const msgs=['NOPE. NOT YET.','YOU THOUGHT THAT WOULD WORK?','THE MEETING IS HIDING.','FINE. YOU EARNED IT.'];
+      if(joinAttempts<4){
+        center(msgs[joinAttempts-1],1400);moveButton(joinBtn,true);
+        joinBtn.textContent=['JOIN?','TRY AGAIN','STILL NO','ALMOST'][joinAttempts-1];
+        return;
+      }
+      joined=true;resetButton(joinBtn);joinBtn.textContent='JOIN MEETING';
+      show('app');renderGrid();renderParticipants();
+      if(typeof toast==='function')toast(`${state.role.toUpperCase()} ACCESS GRANTED.`);
+    };
+  }
+
+  /* PAGE 4 — preserve original handlers, then add finite ragebait wrappers */
+  function wrap(id,attempts,messages,opts={}){
+    const b=$(id);if(!b||!b.onclick)return;
+    const original=b.onclick;let n=0;
+    b.onclick=(e)=>{
+      n++;
+      if(n<attempts){
+        center(messages[(n-1)%messages.length],opts.duration||1300);
+        if(opts.move!==false)moveButton(b,true);
+        if(opts.glitch)b.classList.add('page1-rage');
+        setTimeout(()=>b.classList.remove('page1-rage'),700);
+        return;
+      }
+      resetButton(b);center(opts.final||'FINE. YOU WIN.',800);original.call(b,e);
+    };
+  }
+  setTimeout(()=>{
+    wrap('micBtn',4,['SILENCE IS NOT YOUR DESTINY.','THE MIC HEARD YOU THINKING.','STOP TRYING TO MUTE.'],{final:'MIC FINALLY OBEYS.'});
+    wrap('camBtn',4,['YOUR FACE CAN WAIT.','CAMERA DENIED. AGAIN.','THE UI DOES NOT WANT TO SEE YOU.'],{final:'CAMERA FINALLY COOPERATES.'});
+    wrap('participantsBtn',4,['WHO ARE YOU INVITING?','THE BUTTON IS BUSY.','NO FRIENDS DETECTED.'],{final:'FINE. OPENING PARTICIPANTS.'});
+    wrap('chatBtn',3,['CHAT? REALLY?','THE KEYBOARD IS JUDGING YOU.'],{move:false,final:'FINE. CHAT IS OPEN.'});
+    wrap('shareBtn',3,['SHARE WHAT? YOUR REGRETS?','SCREEN SHARE DENIED BY BAD UI.'],{final:'FINE. SHARE YOUR SCREEN.'});
+    wrap('reactBtn',2,['THAT REACTION WAS A MISTAKE.'],{move:false,final:'REACTION RELEASED.'});
+    wrap('recordBtn',3,['RECORDING? ABSOLUTELY NOT.','WE ARE NOT KEEPING EVIDENCE.'],{move:false,final:'FINE. RECORDING.'});
+    wrap('settingsBtn',3,['SETTINGS ARE A PRIVILEGE.','YOU CLICKED THE WRONG GEAR.'],{move:false,final:'FINE. SETTINGS.'});
+    wrap('securityBtn',3,['SECURITY? YOU?','NICE TRY, ADMIN.'],{move:false,final:'SECURITY MENU UNLOCKED.'});
+    wrap('leaveBtn',4,['YOU\'RE LEAVING ALREADY?','NO.','WE JUST STARTED.'],{final:'FINE. ESCAPE.'});
+  },100);
+
+  /* Chaos meter and meeting-wide instability */
+  let chaos=0;
+  const meter=document.createElement('div');meter.id='meetingChaosMeter';meter.textContent='UI STABILITY: 100%';document.body.appendChild(meter);
+  setInterval(()=>{
+    if(!$('app')||$('app').classList.contains('hidden'))return;
+    /* Page 4 is intentionally much less stable: it falls quickly. */
+    chaos=Math.min(100,chaos+(8+Math.floor(Math.random()*9)));
+    const stability=Math.max(0,100-chaos);meter.textContent='UI STABILITY: '+stability+'%';
+    if(stability<=3){
+      meter.textContent='UI STABILITY: 0%';
+      center('UI STABILITY: 0%\nGOOD LUCK.',2200);
+      chaos=18;
+    }
+  },4500);
+
+  /* periodic meeting interruptions */
+  const meetingMsgs=['THIS MEETING COULD HAVE BEEN AN EMAIL.','WE SAW THAT.','STOP TOUCHING THINGS.','SOMETHING IS DEFINITELY WRONG.','YOU CLICKED THAT ON PURPOSE.','GOOD LUCK GETTING OUT.'];
+  setInterval(()=>{
+    if($('app')&&!$('app').classList.contains('hidden')&&Math.random()<0.48)
+      center(meetingMsgs[Math.floor(Math.random()*meetingMsgs.length)],1500);
+  },12000);
+
+  /* participant rearrangement — visual only */
+  setInterval(()=>{
+    if(!$('app')||$('app').classList.contains('hidden')||typeof renderGrid!=='function')return;
+    if(Math.random()<0.38){center('THE PARTICIPANTS HAVE MOVED.',900);renderGrid();}
+  },17000);
+})();
+</script>
+<style>
+/* =========================================================
+   UI GONE BAD — SUDDEN ZOOM GLITCH
+   Page 1 stays clean. Pages 2/3/4 get carefully timed
+   zoom-out attacks without resetting any real state.
+   ========================================================= */
+#uigbZoomGlitch{
+  position:fixed;
+  inset:0;
+  z-index:999999;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  pointer-events:none;
+  opacity:0;
+  visibility:hidden;
+  background:rgba(0,0,0,.08);
+  mix-blend-mode:normal;
+}
+#uigbZoomGlitch.active{
+  opacity:1;
+  visibility:visible;
+}
+#uigbZoomGlitch .uigb-zoom-msg{
+  max-width:min(90vw,900px);
+  padding:22px 30px;
+  text-align:center;
+  font-family:monospace;
+  font-weight:900;
+  font-size:clamp(20px,3vw,48px);
+  line-height:1.05;
+  letter-spacing:2px;
+  color:#d8ff00;
+  background:#100018;
+  border:5px solid #d8ff00;
+  box-shadow:12px 12px 0 #ff00d4, -8px -8px 0 #00ffff;
+  text-shadow:3px 0 #ff00d4,-3px 0 #00ffff;
+  transform:skew(-2deg);
+  animation:uigbZoomMessage .18s steps(2,end) infinite alternate;
+}
+@keyframes uigbZoomMessage{
+  from{transform:translate(-3px,2px) skew(-2deg) rotate(-.5deg);}
+  to{transform:translate(3px,-2px) skew(2deg) rotate(.5deg);}
+}
+body.uigb-sudden-zoom > *:not(#uigbZoomGlitch){
+  transform:scale(.66) !important;
+  transform-origin:50% 50% !important;
+  filter:saturate(1.2) contrast(1.08) !important;
+}
+body.uigb-sudden-zoom > *:not(#uigbZoomGlitch)::after{
+  content:"";
+}
+body.uigb-sudden-zoom::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  z-index:999998;
+  pointer-events:none;
+  background:repeating-linear-gradient(to bottom,rgba(255,255,255,.035) 0 1px,transparent 1px 4px);
+  animation:uigbScan .12s steps(2,end) infinite;
+}
+@keyframes uigbScan{
+  0%{transform:translateY(-2px);opacity:.45}
+  100%{transform:translateY(2px);opacity:.15}
+}
+</style>
+
+<script>
+/* =========================================================
+   PAGE-SPECIFIC SUDDEN ZOOM ATTACKS
+   ========================================================= */
+(function(){
+  const zoomMessages={
+    auth:[
+      'WHY IS EVERYTHING SO FAR AWAY?',
+      'THE PASSWORD IS STILL OVER THERE.',
+      'YOU WANTED A LOGIN. HERE IS DISTANCE.',
+      'ACCESS DENIED BY SCALE.'
+    ],
+    join:[
+      'CALIBRATING YOUR MEETING...',
+      'YOUR CAMERA IS SOMEWHERE OVER THERE.',
+      'PRE-JOIN, PRE-DISTANCE.',
+      'THE MEETING IS MOVING AWAY FROM YOU.'
+    ],
+    app:[
+      'ZOOM IS HAVING A ZOOM MEETING.',
+      'WHY IS THE MEETING SO FAR AWAY?',
+      'ZOOM JUST ZOOMED OUT OF ZOOM.',
+      'THE UI NEEDS SOME PERSONAL SPACE.',
+      'CONGRATULATIONS. YOU LOST THE UI.',
+      'SOMEONE MOVED THE WHOLE MEETING.'
+    ]
+  };
+
+  let active=false;
+  let pageTimers={};
+  let appCount=0;
+
+  function visible(id){
+    const el=document.getElementById(id);
+    return !!el && !el.classList.contains('hidden');
+  }
+
+  function currentPage(){
+    if(visible('app')) return 'app';
+    if(visible('join')) return 'join';
+    if(visible('auth')) return 'auth';
+    return 'home';
+  }
+
+  function makeOverlay(){
+    if(document.getElementById('uigbZoomGlitch')) return;
+    const o=document.createElement('div');
+    o.id='uigbZoomGlitch';
+    o.innerHTML='<div class="uigb-zoom-msg" id="uigbZoomText"></div>';
+    document.body.appendChild(o);
+  }
+
+  function attack(page, forcedMessage){
+    if(active || currentPage()!==page) return;
+    active=true;
+    makeOverlay();
+    const o=document.getElementById('uigbZoomGlitch');
+    const t=document.getElementById('uigbZoomText');
+    const list=zoomMessages[page]||zoomMessages.app;
+    t.textContent=forcedMessage || list[Math.floor(Math.random()*list.length)];
+
+    // Force a fresh visual state so the snap feels abrupt every time.
+    document.body.classList.remove('uigb-sudden-zoom');
+    void document.body.offsetWidth;
+    document.body.classList.add('uigb-sudden-zoom');
+    o.classList.add('active');
+
+    // Briefly flicker the message before returning everything to 100%.
+    setTimeout(()=>o.classList.remove('active'),1900);
+    setTimeout(()=>{
+      document.body.classList.remove('uigb-sudden-zoom');
+      active=false;
+    },2500);
+  }
+
+  function schedule(page,min,max){
+    clearTimeout(pageTimers[page]);
+    const delay=min+Math.random()*(max-min);
+    pageTimers[page]=setTimeout(()=>{
+      if(currentPage()===page) attack(page);
+      schedule(page,min,max);
+    },delay);
+  }
+
+  // Start/restart the correct page's attack schedule whenever screens change.
+  function refreshSchedules(){
+    const page=currentPage();
+    if(page==='auth') schedule('auth',8500,15000);
+    else clearTimeout(pageTimers.auth);
+    if(page==='join') schedule('join',9000,17000);
+    else clearTimeout(pageTimers.join);
+    if(page==='app') schedule('app',14000,26000);
+    else clearTimeout(pageTimers.app);
+  }
+
+  // Watch the existing four-page navigation without touching its handlers.
+  const observer=new MutationObserver(refreshSchedules);
+  observer.observe(document.body,{subtree:true,attributes:true,attributeFilter:['class']});
+
+  // Give Page 4 a couple of deliberately nasty trigger moments too.
+  document.addEventListener('click',function(e){
+    if(!visible('app') || active) return;
+    const id=e.target && e.target.id;
+    const risky=['chatBtn','participantsBtn','shareBtn','settingsBtn','securityBtn','leaveBtn'];
+    if(risky.includes(id) && Math.random()<0.16){
+      setTimeout(()=>{
+        if(visible('app') && !active) attack('app');
+      },220);
+    }
+  },true);
+
+  // Initial schedule.
+  setTimeout(refreshSchedules,500);
+})();
+</script>
+
+<script id="five-reload-signup-rage">
+(function(){
+  // PAGE 2 RELOAD LIMIT: five login-page reloads sends the user back to signup.
+  const RELOAD_COUNT_KEY='uigbLoginReloadCount';
+  const REDIRECT_KEY='uigbForceSignupAfterReloads';
+
+  window.addEventListener('beforeunload',()=>{
+    const auth=document.getElementById('auth');
+    if(!auth || auth.classList.contains('hidden')) return;
+
+    let count=parseInt(sessionStorage.getItem(RELOAD_COUNT_KEY)||'0',10);
+    count++;
+
+    if(count>=5){
+      sessionStorage.setItem(REDIRECT_KEY,'true');
+      sessionStorage.removeItem('uigbReloadedOnLogin');
+      sessionStorage.removeItem('uigbSignedUp');
+      sessionStorage.removeItem('uigbStoredUser');
+      sessionStorage.removeItem('uigbStoredPass');
+      sessionStorage.removeItem(RELOAD_COUNT_KEY);
+    }else{
+      sessionStorage.setItem(RELOAD_COUNT_KEY,String(count));
+    }
+  });
+
+  function handleFiveReloadRedirect(){
+    if(sessionStorage.getItem(REDIRECT_KEY)!=='true') return;
+    sessionStorage.removeItem(REDIRECT_KEY);
+    sessionStorage.removeItem('uigbReloadedOnLogin');
+
+    // Reset the signup/login state so a fresh account is required.
+    try{
+      if(typeof signedUp!=='undefined') signedUp=false;
+      if(typeof storedUser!=='undefined') storedUser='';
+      if(typeof storedPass!=='undefined') storedPass='';
+      if(typeof loginUser!=='undefined' && loginUser) loginUser.value='';
+      if(typeof loginPass!=='undefined' && loginPass) loginPass.value='';
+    }catch(e){}
+
+    setTimeout(()=>{
+      if(typeof show==='function') show('home');
+      if(typeof openSignup==='function') openSignup();
+      if(typeof toast==='function') toast('5 RELOADS? BACK TO SIGN UP. REMEMBER YOUR CREDENTIALS.',true);
+      const status=document.getElementById('finalSignupStatus');
+      if(status) status.textContent='YOU RELOADED PAGE 2 FIVE TIMES. SIGN UP AGAIN.';
+    },100);
+  }
+
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',handleFiveReloadRedirect,{once:true});
+  }else{
+    handleFiveReloadRedirect();
+  }
+})();
+</script>
+</body>
+
+<!-- =========================================================
+     FINAL ZOOM UI — FINAL POLISH LAYER
+     ========================================================= -->
+<style>
+#finalMeetingClock{
+  position:fixed;left:18px;bottom:92px;z-index:7000;
+  padding:9px 12px;border:3px solid #d8ff00;background:#09050e;
+  color:#d8ff00;font:700 12px/1 monospace;letter-spacing:1px;
+  box-shadow:5px 5px 0 #ff00d4,-3px -3px 0 #00ffff;
+  display:none;pointer-events:none;
+}
+#finalMeetingClock.glitch{animation:finalClockGlitch .12s steps(2,end) 7;}
+@keyframes finalClockGlitch{0%{transform:translate(0);filter:none}50%{transform:translate(5px,-2px) skew(8deg);filter:hue-rotate(90deg)}100%{transform:translate(-4px,2px);filter:none}}
+.final-camera-mirror{transform:scaleX(-1)!important;filter:saturate(1.5) contrast(1.15)!important;}
+#finalEscapeBoss{position:fixed;inset:0;z-index:1000001;background:#000;display:none;place-items:center;text-align:center;pointer-events:none;}
+#finalEscapeBoss.active{display:grid;animation:escapeBossIn .18s steps(2,end);}
+#finalEscapeBoss .bossText{font-family:monospace;font-weight:900;color:#d8ff00;font-size:clamp(18px,3vw,42px);line-height:1.6;padding:28px;border:5px solid #d8ff00;box-shadow:10px 10px 0 #ff00d4,-7px -7px 0 #00ffff;text-shadow:3px 0 #ff00d4,-3px 0 #00ffff;}
+@keyframes escapeBossIn{from{opacity:0;transform:scale(1.15)}to{opacity:1;transform:scale(1)}}
+.final-key-betray{animation:finalKeyBetray .16s steps(2,end) 6;}
+@keyframes finalKeyBetray{0%,100%{transform:translate(0)}50%{transform:translate(4px,-3px) rotate(3deg)}}
+</style>
+<script id="final-zoom-ui-polish">
+(()=>{
+  const $=id=>document.getElementById(id);
+  const visible=id=>!!$(id)&&!$(id).classList.contains('hidden');
+  const wait=ms=>new Promise(r=>setTimeout(r,ms));
+
+  /* PAGE 1 — fake loading before the existing auth screen appears. */
+  const enter=$('enterBtn');
+  if(enter){
+    const oldEnter=enter.onclick;
+    enter.onclick=async function(e){
+      if(!this.dataset.finalLoadingWrapped){
+        this.dataset.finalLoadingWrapped='1';
+      }
+      const before=window.__finalEnterAttempts||0;
+      window.__finalEnterAttempts=before+1;
+      if(window.__finalEnterAttempts!==5){ oldEnter.call(this,e); return; }
+      oldEnter.call(this,e);
+      const blackout=$('blackout'), msg=$('blackoutMessage');
+      if(!blackout||!msg)return;
+      await wait(650); if(blackout.classList.contains('active'))msg.innerHTML='CONNECTING...';
+      await wait(650); if(blackout.classList.contains('active'))msg.innerHTML='NEGOTIATING WITH ZOOM...';
+      await wait(800); if(blackout.classList.contains('active'))msg.innerHTML='CHECKING YOUR BAD DECISIONS...';
+      await wait(800); if(blackout.classList.contains('active'))msg.innerHTML='REGRETTING DECISION...';
+      await wait(900); if(blackout.classList.contains('active'))msg.innerHTML='FINE. LETTING YOU IN.';
+    };
+  }
+
+  /* PAGE 2 — password keyboard betrayal: the visible labels shuffle. */
+  const originalBuild=window.buildVirtualKeyboard;
+  let betrayalStarted=false;
+  function keyboardBetrayal(){
+    if(betrayalStarted)return; betrayalStarted=true;
+    setInterval(()=>{
+      if(!visible('auth'))return;
+      const k=$('vkKeys'); if(!k)return;
+      const keys=[...k.querySelectorAll('.vk-key')].filter(b=>!b.classList.contains('wide'));
+      if(!keys.length)return;
+      const labels=keys.map(b=>b.textContent);
+      for(let i=labels.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[labels[i],labels[j]]=[labels[j],labels[i]];}
+      keys.forEach((b,i)=>{
+        b.textContent=labels[i];
+        b.classList.remove('final-key-betray'); void b.offsetWidth; b.classList.add('final-key-betray');
+        b.onclick=()=>{ $('password').value += b.textContent.toLowerCase(); $('password').focus(); };
+      });
+      if(typeof centerRage==='function')centerRage('THE KEYBOARD HAS CHANGED ITS MIND.',1200);
+      setTimeout(()=>keys.forEach(b=>b.classList.remove('final-key-betray')),900);
+    },12500);
+  }
+  setTimeout(keyboardBetrayal,800);
+
+  /* PAGE 3 — brief camera mirror glitch. */
+  let mirrorBusy=false;
+  setInterval(async()=>{
+    if(!visible('join')||mirrorBusy)return;
+    if(Math.random()>.42)return;
+    const video=$('localPreview'); if(!video)return;
+    mirrorBusy=true;
+    if(typeof centerRage==='function')centerRage('THAT IS NOT YOUR GOOD SIDE.',1200);
+    video.classList.add('final-camera-mirror');
+    await wait(1400);
+    video.classList.remove('final-camera-mirror');
+    mirrorBusy=false;
+  },10500);
+
+  /* PAGE 4 — deliberately broken meeting clock. */
+  let clockSeconds=0, clockReady=false, clockGlitching=false;
+  function clock(){
+    if(!$('finalMeetingClock')){
+      const d=document.createElement('div');d.id='finalMeetingClock';document.body.appendChild(d);
+    }
+    return $('finalMeetingClock');
+  }
+  function fmt(s){const m=Math.floor(s/60).toString().padStart(2,'0'),x=(s%60).toString().padStart(2,'0');return m+':'+x;}
+  setInterval(()=>{
+    if(!visible('app')){clock().style.display='none';return;}
+    clockReady=true;const d=clock();d.style.display='block';
+    clockSeconds++;d.textContent='MEETING TIME: '+fmt(clockSeconds);
+  },1000);
+  setInterval(async()=>{
+    if(!visible('app')||clockGlitching)return;
+    if(Math.random()>.34)return;
+    clockGlitching=true;const d=clock();
+    d.textContent='MEETING TIME: 03:91:77';d.classList.add('glitch');
+    if(typeof centerRage==='function')centerRage('TIME IS ALSO HAVING A BAD DAY.',1500);
+    await wait(1200);d.textContent='MEETING TIME: '+fmt(clockSeconds);d.classList.remove('glitch');clockGlitching=false;
+  },13500);
+
+  /* PAGE 4 — final boss after the existing leave ragebait has been beaten. */
+  setTimeout(()=>{
+    const b=$('leaveBtn'); if(!b)return;
+    const old=b.onclick; let bossShown=false;
+    b.onclick=function(e){
+      if(!bossShown && this.textContent==='LEAVE MEETING'){
+        bossShown=true;
+        const o=document.createElement('div');o.id='finalEscapeBoss';
+        o.innerHTML='<div class="bossText">ARE YOU SURE YOU WANT TO ESCAPE?<br><small>YOU MADE IT THIS FAR.</small></div>';
+        document.body.appendChild(o);o.classList.add('active');
+        setTimeout(()=>{o.classList.remove('active');setTimeout(()=>o.remove(),250);old.call(this,e);},1800);
+        return;
+      }
+      old.call(this,e);
+    };
+  },900);
+})();
+</script>
+
+
+<!-- =========================================================
+     FINAL POLISH — PAGE 2 FIRST-ENTRY CREDENTIAL HINT
+     Keeps the existing base/effects intact.
+     ========================================================= -->
+<style id="final-credential-hint-style">
+  #finalCredentialHint{
+    position:fixed;
+    top:22px;
+    left:50%;
+    transform:translateX(-50%) translateY(-18px) scale(.96);
+    z-index:1000000;
+    max-width:min(760px,calc(100vw - 28px));
+    padding:14px 20px;
+    background:#09000d;
+    color:var(--lime,#b6ff00);
+    border:4px solid var(--lime,#b6ff00);
+    box-shadow:8px 8px 0 #ff2bd6, 0 0 24px rgba(0,255,255,.28);
+    font-family:monospace;
+    font-weight:900;
+    letter-spacing:1px;
+    text-align:center;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .22s ease, transform .22s ease;
+  }
+  #finalCredentialHint.show{
+    opacity:1;
+    transform:translateX(-50%) translateY(0) scale(1);
+  }
+  #finalCredentialHint small{
+    display:block;
+    margin-top:7px;
+    color:#00ffff;
+    font-size:12px;
+  }
+</style>
+<script id="final-credential-hint-script">
+(function(){
+  let shown=false;
+  let hintTimer=null;
+  function showCredentialHint(){
+    if(shown)return;
+    shown=true;
+    const h=document.createElement('div');
+    h.id='finalCredentialHint';
+    h.innerHTML='USE THE USERNAME + PASSWORD YOU CREATED ON PAGE 1.<small>THEN LOGIN.</small>';
+    document.body.appendChild(h);
+    requestAnimationFrame(()=>h.classList.add('show'));
+    clearTimeout(hintTimer);
+    hintTimer=setTimeout(()=>{
+      h.classList.remove('show');
+      setTimeout(()=>h.remove(),260);
+    },4200);
+  }
+  function authVisible(){
+    const a=document.getElementById('auth');
+    return a && !a.classList.contains('hidden');
+  }
+  const observer=new MutationObserver(()=>{
+    if(authVisible())showCredentialHint();
+  });
+  observer.observe(document.body,{subtree:true,attributes:true,attributeFilter:['class']});
+  if(authVisible())showCredentialHint();
+})();
+</script>
+
+</html>
+
+<style id="reload-password-rage-style">
+#reloadPasswordRage{position:fixed;left:50%;top:24%;transform:translate(-50%,-20px) scale(.94);z-index:1000002;max-width:min(760px,calc(100vw - 30px));padding:18px 24px;background:#080008;color:#b6ff00;border:4px solid #ff2bd6;box-shadow:9px 9px 0 #00ffff,0 0 30px rgba(255,43,214,.35);font:900 18px/1.45 monospace;text-align:center;opacity:0;pointer-events:none;transition:opacity .22s ease,transform .22s ease;}
+#reloadPasswordRage.show{opacity:1;transform:translate(-50%,0) scale(1);}
+#reloadPasswordRage small{display:block;margin-top:10px;color:#00ffff;font-size:12px;line-height:1.7;}
+</style>
+
+<!-- =========================================================
+     FINAL UX PATCH — PAGE 1 SIGN UP → PAGE 2 LOGIN
+     Adds a normal Zoom-style account setup without replacing
+     the existing UI GONE BAD base/effects.
+     ========================================================= -->
+<style id="final-signup-style">
+  #finalSignupOverlay{
+    position:fixed;inset:0;display:none;place-items:center;z-index:1000001;
+    background:rgba(0,0,0,.72);backdrop-filter:blur(2px);
+    padding:20px;
+  }
+  #finalSignupOverlay.show{display:grid}
+  #finalSignupBox{
+    width:min(560px,94vw);max-height:calc(100vh - 32px);overflow-y:auto;box-sizing:border-box;
+    background:#09050e;color:var(--lime,#b6ff00);
+    border:4px solid var(--cyan,#00ffff);box-shadow:10px 10px 0 var(--pink,#ff2bd6),-6px -6px 0 var(--lime,#b6ff00);
+    padding:26px;font-family:"Press Start 2P",monospace;
+    animation:finalSignupGlitch .12s infinite;
+  }
+  @keyframes finalSignupGlitch{
+    0%,100%{transform:translate(0)} 45%{transform:translate(2px,-1px)} 70%{transform:translate(-2px,1px)}
+  }
+  #finalSignupBox h2{margin:0 0 14px;font-size:clamp(17px,3vw,28px)}
+  #finalSignupBox .signup-note{font:700 12px/1.7 monospace;color:#00ffff;margin-bottom:18px}
+  #finalSignupBox label{display:block;font:900 11px monospace;margin:12px 0 6px}
+  #finalSignupBox input{width:100%;box-sizing:border-box;padding:12px;border:3px solid var(--lime,#b6ff00);background:#000;color:#fff;font:700 14px monospace;outline:none}
+  #finalSignupBox input[readonly]{cursor:not-allowed}
+  #finalSignupKeyboard{margin-top:10px;display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:5px;padding:8px;border:3px dashed #00ffff;background:#050505}
+  #finalSignupKeyboard .signup-key{min-height:34px;padding:5px 3px;border:2px solid var(--lime,#b6ff00);background:#111;color:#b6ff00;font:900 11px monospace;cursor:pointer;box-shadow:2px 2px 0 #ff2bd6}
+  #finalSignupKeyboard .signup-key:hover{background:#b6ff00;color:#050505;transform:translate(-1px,-1px)}
+  #finalSignupKeyboard .signup-key.wide{grid-column:span 5}
+  #finalSignupKeyboard .signup-kbd-title{grid-column:1/-1;color:#00ffff;font:900 10px monospace;letter-spacing:.5px;padding:2px 0 5px}
+  .signup-choice-title{margin-top:18px;color:#00ffff;font:900 11px monospace;letter-spacing:.5px}
+  .signup-choice{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:9px}
+  .signup-choice-btn{padding:11px 8px;border:3px solid #00ffff;background:#111;color:#00ffff;font:900 11px monospace;cursor:pointer;box-shadow:3px 3px 0 #ff2bd6}
+  .signup-choice-btn.selected{background:#00ffff;color:#050505;box-shadow:4px 4px 0 #b6ff00}
+  .signup-choice-btn:hover{transform:translate(-1px,-1px)}
+  .create-fields{display:none;margin-top:14px;padding:12px;border:3px dashed #ff2bd6;background:#050505}
+  .create-fields.show{display:block}
+  .create-fields-title{color:#ff2bd6;font:900 11px monospace;margin-bottom:8px}
+  .create-fields-hint{margin-top:8px;color:#00ffff;font:700 10px/1.5 monospace}
+  @media (max-height:760px){
+    #finalSignupOverlay{padding:10px;align-items:start;}
+    #finalSignupBox{max-height:calc(100vh - 20px);padding:18px;}
+    #finalSignupBox h2{font-size:18px;margin-bottom:10px;}
+    #finalSignupBox .signup-note{margin-bottom:10px;line-height:1.45;}
+    #finalSignupBox label{margin:8px 0 4px;}
+    #finalSignupKeyboard{gap:3px;padding:6px;margin-top:6px;}
+    #finalSignupKeyboard .signup-key{min-height:28px;padding:3px 2px;font-size:10px;}
+    .signup-choice-title{margin-top:10px;}
+    .create-fields{margin-top:9px;padding:9px;}
+    #finalSignupActions{margin-top:10px;}
+  }
+  #finalSignupActions{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px}
+  #finalSignupBtn,#finalSignupCancel{padding:12px 15px;border:3px solid var(--lime,#b6ff00);background:#111;color:var(--lime,#b6ff00);font:900 11px monospace;cursor:pointer}
+  #finalSignupBtn{background:var(--lime,#b6ff00);color:#050505;box-shadow:5px 5px 0 var(--pink,#ff2bd6)}
+  #finalSignupStatus{min-height:18px;margin-top:12px;font:900 11px monospace;color:#ff2bd6}
+</style>
+
+
+
+<div id="finalSignupOverlay" aria-hidden="true">
+  <div id="finalSignupBox">
+    <h2>CREATE YOUR ZOOM ACCOUNT</h2>
+    <div class="signup-note">NEW USER? SIGN UP FIRST. THEN WE'LL SEND YOU TO LOGIN.<br>YES, IT'S STILL UI GONE BAD.<br><span style="color:#ff2bd6">⚠ REMEMBER THE USERNAME + PASSWORD YOU CHOOSE.</span><br><span style="color:#b6ff00">⚠ PASSWORD RULE: USE ONLY CHARACTERS THAT APPEAR ON THE LOGIN KEYBOARD.</span></div>
+    <label for="finalSignupUser">USERNAME</label>
+    <input id="finalSignupUser" autocomplete="username" placeholder="Choose any username">
+    <label for="finalSignupPass">PASSWORD</label>
+    <input id="finalSignupPass" type="password" autocomplete="new-password" placeholder="USE THE KEYBOARD BELOW" readonly inputmode="none">
+    <div id="finalSignupKeyboard" aria-label="On-screen signup password keyboard"></div>
+    <div class="signup-choice-title">WHAT DO YOU WANT TO DO?</div>
+    <div id="finalSignupChoice" class="signup-choice" role="group" aria-label="Meeting type">
+      <button id="finalJoinChoice" type="button" class="signup-choice-btn selected">JOIN MEETING</button>
+      <button id="finalCreateChoice" type="button" class="signup-choice-btn">CREATE MEETING</button>
+    </div>
+    <div id="finalCreateFields" class="create-fields" aria-hidden="true">
+      <div class="create-fields-title">CREATE YOUR MEETING</div>
+      <label for="finalMeetingName">MEETING NAME</label>
+      <input id="finalMeetingName" autocomplete="off" placeholder="Enter meeting name">
+      <label for="finalMeetingPass">MEETING PASSCODE</label>
+      <input id="finalMeetingPass" autocomplete="off" placeholder="Create a meeting passcode">
+      <div class="create-fields-hint">REMEMBER THIS PASSCODE — YOU WILL NEED IT TO ENTER THE MEETING.</div>
+    </div>
+    <div id="finalSignupStatus"></div>
+    <div id="finalSignupActions">
+      <button id="finalSignupBtn" type="button">SIGN UP</button>
+      <button id="finalSignupCancel" type="button">CANCEL</button>
+    </div>
+  </div>
+</div>
+
+<script id="final-signup-login-flow">
+(function(){
+  const overlay=document.getElementById('finalSignupOverlay');
+  const userInput=document.getElementById('finalSignupUser');
+  const passInput=document.getElementById('finalSignupPass');
+  const signupKeyboard=document.getElementById('finalSignupKeyboard');
+  const status=document.getElementById('finalSignupStatus');
+  const signupBtn=document.getElementById('finalSignupBtn');
+  const cancelBtn=document.getElementById('finalSignupCancel');
+  const joinChoice=document.getElementById('finalJoinChoice');
+  const createChoice=document.getElementById('finalCreateChoice');
+  const createFields=document.getElementById('finalCreateFields');
+  const meetingNameInput=document.getElementById('finalMeetingName');
+  const meetingPassInput=document.getElementById('finalMeetingPass');
+  let signupMode=sessionStorage.getItem('uigbSignupMode')||'join';
+  const enter=document.getElementById('enterBtn');
+  const loginUser=document.getElementById('email');
+  const loginPass=document.getElementById('password');
+
+  let signedUp=sessionStorage.getItem('uigbSignedUp')==='true';
+  let storedUser=sessionStorage.getItem('uigbStoredUser')||'';
+  let storedPass=sessionStorage.getItem('uigbStoredPass')||'';
+
+  if(signedUp){
+    loginUser.value=storedUser;
+  }
+
+  // Page 1 SIGN-UP keyboard is intentionally ordered and easy to follow.
+  // Page 2's scrambled keyboard remains completely untouched.
+  const signupLayout=[
+    ["A","B","C","D","E","F","G","H","I","J"],
+    ["K","L","M","N","O","P","Q","R","S","T"],
+    ["U","V","W","X","Y","Z","0","1","2","3"],
+    ["4","5","6","7","8","9","-",".","_" ]
+  ];
+
+  function buildSignupKeyboard(){
+    if(!signupKeyboard) return;
+    signupKeyboard.innerHTML='';
+    const title=document.createElement('div');
+    title.className='signup-kbd-title';
+    title.textContent='SIGN-UP PASSWORD KEYBOARD // TYPE PASSWORD USING THESE KEYS ONLY';
+    signupKeyboard.appendChild(title);
+    signupLayout.flat().forEach(key=>{
+      const btn=document.createElement('button');
+      btn.type='button';
+      btn.className='signup-key';
+      btn.textContent=key;
+      btn.onclick=()=>{ passInput.value += key.toLowerCase(); passInput.focus(); };
+      signupKeyboard.appendChild(btn);
+    });
+    const back=document.createElement('button');
+    back.type='button';
+    back.className='signup-key wide';
+    back.textContent='⌫ BACKSPACE';
+    back.onclick=()=>{ passInput.value=passInput.value.slice(0,-1); passInput.focus(); };
+    signupKeyboard.appendChild(back);
+    const clear=document.createElement('button');
+    clear.type='button';
+    clear.className='signup-key wide';
+    clear.textContent='CLEAR';
+    clear.onclick=()=>{ passInput.value=''; passInput.focus(); };
+    signupKeyboard.appendChild(clear);
+  }
+  buildSignupKeyboard();
+
+  function setSignupMode(mode){
+    signupMode=mode;
+    joinChoice.classList.toggle('selected',mode==='join');
+    createChoice.classList.toggle('selected',mode==='create');
+    createFields.classList.toggle('show',mode==='create');
+    createFields.setAttribute('aria-hidden',mode==='create'?'false':'true');
+    if(mode==='create') setTimeout(()=>meetingNameInput.focus(),50);
+  }
+  joinChoice.onclick=()=>setSignupMode('join');
+  createChoice.onclick=()=>setSignupMode('create');
+  setSignupMode(signupMode);
+
+  function openSignup(){
+    overlay.classList.add('show');
+    overlay.setAttribute('aria-hidden','false');
+    status.textContent='';
+    setTimeout(()=>userInput.focus(),50);
+  }
+  function closeSignup(){
+    overlay.classList.remove('show');
+    overlay.setAttribute('aria-hidden','true');
+  }
+
+  // Keep the original ENTER MEETING ragebait intact, but make first-time
+  // users sign up before that flow can proceed.
+  const originalEnter=enter.onclick;
+  enter.onclick=function(e){
+    if(!signedUp){
+      openSignup();
+      if(typeof toast==='function') toast('SIGN UP FIRST. THEN YOU MAY ENTER.',true);
+      return;
+    }
+    if(originalEnter) return originalEnter.call(this,e);
+  };
+
+  signupBtn.onclick=function(){
+    const u=userInput.value.trim();
+    const p=passInput.value;
+    const meetingName=meetingNameInput.value.trim();
+    const meetingPass=meetingPassInput.value.trim();
+    if(!u || !p){
+      status.textContent='ENTER A USERNAME AND PASSWORD.';
+      if(typeof toast==='function') toast('SIGN UP NEEDS BOTH FIELDS.',true);
+      return;
+    }
+    if(signupMode==='create' && (!meetingName || !meetingPass)){
+      status.style.color='var(--pink,#ff2bd6)';
+      status.textContent='CREATE MEETING NEEDS A NAME AND PASSCODE.';
+      if(typeof toast==='function') toast('ENTER A MEETING NAME + PASSCODE.',true);
+      return;
+    }
+    signedUp=true;
+    storedUser=u;
+    storedPass=p;
+    sessionStorage.setItem('uigbSignedUp','true');
+    sessionStorage.setItem('uigbStoredUser',u);
+    sessionStorage.setItem('uigbStoredPass',p);
+    sessionStorage.setItem('uigbSignupMode',signupMode);
+    if(signupMode==='create'){
+      sessionStorage.setItem('uigbMeetingName',meetingName);
+      sessionStorage.setItem('uigbMeetingPass',meetingPass);
+    } else {
+      sessionStorage.removeItem('uigbMeetingName');
+      sessionStorage.removeItem('uigbMeetingPass');
+    }
+    loginUser.value=u;
+    loginPass.value='';
+    status.style.color='var(--lime,#b6ff00)';
+    status.textContent=signupMode==='create'
+      ? 'ACCOUNT CREATED. CREATE MEETING SELECTED. NOW LOGIN ON PAGE 2.'
+      : 'ACCOUNT CREATED. REMEMBER THIS USERNAME + PASSWORD. JOIN MEETING SELECTED. NOW LOGIN ON PAGE 2.';
+    if(typeof toast==='function') toast('REMEMBER YOUR USERNAME + PASSWORD. ACCOUNT CREATED.',false);
+
+    // Keep the confirmation visible briefly so the user can read the reminder,
+    // then continue through the existing Page 1 ragebait/transition flow.
+    setTimeout(()=>{
+      closeSignup();
+      if(typeof toast==='function') toast('ACCOUNT CREATED. NOW GO LOGIN.',false);
+
+      // Re-arm the existing Page 1 transition and let its original effects run.
+      setTimeout(()=>{
+        if(originalEnter) originalEnter.call(enter,new MouseEvent('click'));
+      },350);
+    },1800);
+  };
+
+  cancelBtn.onclick=closeSignup;
+  overlay.addEventListener('click',e=>{if(e.target===overlay)closeSignup();});
+
+  // Page 2: the login must use the exact credentials created on Page 1.
+  // The existing first-four-click ragebait remains untouched; validation
+  // still happens on the original fifth click.
+  const oldLogin=loginBtn.onclick;
+  loginBtn.onclick=function(e){
+    if(!signedUp){
+      toast('SIGN UP ON PAGE 1 FIRST.',true);
+      return;
+    }
+    if(loginUser.value.trim()!==storedUser){
+      toast('THAT USERNAME DOES NOT MATCH YOUR SIGN-UP.',true);
+      return;
+    }
+    if(loginPass.value!==storedPass){
+      toast('WRONG PASSWORD. USE THE ONE YOU SIGNED UP WITH.',true);
+      return;
+    }
+    return oldLogin ? oldLogin.call(this,e) : undefined;
+  };
+
+  // PAGE 2 RELOAD RAGE: if the user reloads while on login, bring them back
+  // to the login screen and remind them why the password box is not typeable.
+  window.addEventListener('beforeunload',()=>{
+    const auth=document.getElementById('auth');
+    if(auth && !auth.classList.contains('hidden')){
+      sessionStorage.setItem('uigbReloadedOnLogin','true');
+    }
+  });
+
+  function showReloadPasswordMessage(){
+    const msg=document.createElement('div');
+    msg.id='reloadPasswordRage';
+    msg.innerHTML="WHY CAN\'T YOU TYPE YOUR PASSWORD?<small>YOU RELOADED PAGE 2.<br>THE KEYBOARD IS THE ONLY WAY IN.</small>";
+    document.body.appendChild(msg);
+    requestAnimationFrame(()=>msg.classList.add('show'));
+    setTimeout(()=>{
+      msg.classList.remove('show');
+      setTimeout(()=>msg.remove(),300);
+    },4200);
+  }
+
+  if(sessionStorage.getItem('uigbReloadedOnLogin')==='true'){
+    sessionStorage.removeItem('uigbReloadedOnLogin');
+    setTimeout(()=>{
+      if(typeof show==='function') show('auth');
+      if(loginUser) loginUser.value=storedUser;
+      showReloadPasswordMessage();
+    },80);
+  }
+})();
+</script>
